@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": false,
+    "resolveJsonModule": true,
+
+    "outDir": "dist",
+    "rootDir": "src",
+
+    "types": ["node"],
+
+    "skipLibCheck": true
+  },
+  "include": ["src/server", "src/shared"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/web",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}

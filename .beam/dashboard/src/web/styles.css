@@ -1,0 +1,266 @@
+/* task-bridge スタイル。CSS 変数でライト/ダークテーマを切り替える（REQ-301）。
+   テーマは <html data-theme="light|dark"> で適用する（settings/theme.ts）。 */
+
+:root,
+:root[data-theme="light"] {
+  --bg: #f7f7f8;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --muted: #666666;
+  --border: #e0e0e0;
+  --accent: #2563eb;
+  --badge-bg: #eef1f5;
+  --highlight: #fff3cd;
+  --error-bg: #fde2e1;
+  --error-text: #a31515;
+}
+
+:root[data-theme="dark"] {
+  --bg: #1e1e20;
+  --surface: #2a2a2e;
+  --text: #f0f0f0;
+  --muted: #a0a0a0;
+  --border: #3a3a3e;
+  --accent: #60a5fa;
+  --badge-bg: #3a3a3e;
+  --highlight: #4a431f;
+  --error-bg: #5a2a2a;
+  --error-text: #ffb3b3;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.app-title {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.task-list {
+  padding: 1rem 1.25rem;
+}
+
+/* 動作モードバッジ（view モード = 閲覧専用の明示）。画面上部に帯で表示する。 */
+.mode-badge {
+  padding: 0.4rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.mode-badge-view {
+  background: var(--highlight);
+  color: var(--text);
+}
+
+.project-group {
+  margin-bottom: 1.5rem;
+}
+
+.project-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.project-heading {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+/* タスク表（REQ-002 の列を <table> で表示）。 */
+.task-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 0.85rem;
+}
+
+.task-table thead th {
+  text-align: left;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 2px solid var(--border);
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.task-table td {
+  padding: 0.4rem 0.6rem;
+  vertical-align: top;
+  background: transparent;
+}
+
+.task-row {
+  border-top: 1px solid var(--border);
+}
+
+.col-task-id {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.col-content {
+  /* 小さいウィンドウでも半角40文字分（≒40ch）の幅を確保する。 */
+  min-width: 40ch;
+  max-width: 26rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.col-created,
+.col-updated {
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.col-is-deleted,
+.col-update-badge {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.row--deleted .row-title {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+/* 更新行のハイライト（行全体・REQ-010 / AC-12）。td は透過なので tr 背景が見える。 */
+.row--updated,
+.row--updated td {
+  background: var(--highlight);
+  transition: background 0.6s ease-out;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--badge-bg);
+  border: 1px solid var(--border);
+}
+
+.badge--status-in_progress {
+  border-color: var(--accent);
+}
+.badge--sync-synced {
+  color: #15803d;
+}
+.badge--sync-sync_failed {
+  color: var(--error-text);
+}
+.badge--sync-pending_deletion {
+  color: var(--muted);
+}
+
+.row-error {
+  color: var(--error-text);
+  font-size: 0.8rem;
+}
+
+.row-actions {
+  white-space: nowrap;
+}
+
+.row-actions > * + * {
+  margin-left: 0.4rem;
+}
+
+.sync-button,
+.delete-sync-button {
+  font-size: 0.78rem;
+  padding: 0.15rem 0.55rem;
+}
+
+.bulk-progress-area {
+  display: inline-flex;
+  align-items: center;
+}
+
+.sync-progress {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-left: 0.5rem;
+}
+
+.empty-state,
+.loading {
+  color: var(--muted);
+  padding: 1rem 0;
+}
+
+.error-screen {
+  margin: 1rem 1.25rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: var(--error-bg);
+  color: var(--error-text);
+  border: 1px solid var(--error-text);
+}
+
+.progress {
+  margin: 0.5rem 0;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--badge-bg);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+button {
+  font: inherit;
+  padding: 0.25rem 0.7rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

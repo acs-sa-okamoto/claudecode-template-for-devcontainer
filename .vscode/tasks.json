@@ -1,0 +1,31 @@
+{
+  // beam タスクダッシュボードを開く/再表示するためのタスク。
+  //
+  // - フォルダ/コンテナを開くと自動起動し、ポート 3939 が VS Code 内タブ
+  //   （Simple Browser, onAutoForward=openPreview）で自動表示される。
+  // - モードは run.sh が自動判定する:
+  //     .env に NOTION_API_TOKEN と NOTION_PARENT_PAGE_ID があれば → Notion 連携（full）
+  //     なければ                                                  → 閲覧専用（view, 画面上部にバッジ表示）
+  // - タブを閉じた後など「もう一度開きたい」ときは:
+  //     コマンドパレット → "Tasks: Run Task" → "🔭 beam ダッシュボードを開く"
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🔭 beam ダッシュボードを開く",
+      "type": "shell",
+      "command": "bash .beam/dashboard/run.sh",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "group": "beam-dashboard",
+        "close": false
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "detail": "data/tasks.db の状況を VS Code 内タブで表示（http://localhost:3939）。.env に Notion 資格情報があれば連携モード、なければ閲覧専用で自動起動"
+    }
+  ]
+}

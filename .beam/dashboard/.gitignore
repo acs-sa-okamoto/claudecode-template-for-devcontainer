@@ -1,0 +1,8 @@
+# 生成物（post-create で再生成される）
+node_modules/
+data/
+logs/
+dashboard.pid
+# dist はテンプレート配布方針により含める/含めないを選べる。
+# 既定ではビルド成果物として無視する（postCreate でビルド）。
+dist/

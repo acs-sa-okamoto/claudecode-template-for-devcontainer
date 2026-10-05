@@ -1,0 +1,41 @@
+{
+  "name": "${localWorkspaceFolderBasename}",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "mounts": [
+    "source=${localEnv:HOME}/.config/gh,target=/home/node/.config/gh,type=bind"
+  ],
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "dbaeumer.vscode-eslint",
+        "oderwat.indent-rainbow",
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "GitHub.vscode-pull-request-github"
+      ],
+      "settings": {
+        "gitlens.currentLine.enabled": false,
+        "git-graph.repository.openAutomatically": true
+      }
+    }
+  },
+  "forwardPorts": [3939],
+  "portsAttributes": {
+    "3939": {
+      "label": "beam dashboard",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh"
+}

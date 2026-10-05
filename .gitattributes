@@ -1,0 +1,7 @@
+# 改行コード（EOL）を制御
+# ・通常のソースコード → LF（Unix系標準）
+# ・.cmd / .bat → CRLF（Windowsで正しく動かすため）
+
+* text=auto eol=lf
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf

@@ -1,0 +1,23 @@
+# 生成物・依存
+node_modules/
+dist/
+logs/
+coverage/
+
+# lockfile は pnpm が生成する。整形すると差分が壊れる
+pnpm-lock.yaml
+
+# 独自の設定を持つ別プロジェクト（.beam/dashboard 側で整形する）
+.beam/
+
+# 手書き・自動生成のドキュメント。Prettier の折り返しで
+# 日本語の表や箇条書きが崩れるため対象外とする
+docs/
+*.md
+
+# ツールが書き換える設定ファイル。整形すると差分が往復する。
+# package.json はスクリプトの意図的な空行グループ分けを保つため対象外とする。
+package.json
+.claude/settings.json
+.mcp.json
+.vscode/settings.json
