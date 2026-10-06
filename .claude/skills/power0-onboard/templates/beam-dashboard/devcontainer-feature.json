@@ -1,0 +1,6 @@
+{
+  "id": "beam-dashboard",
+  "version": "1.0.0",
+  "name": "beam dashboard runtime (a private Node for .beam/dashboard)",
+  "description": "タスクダッシュボード（.beam/dashboard/）専用の Node。プロジェクトとは別の場所に入れて PATH には足さないので、プロジェクトの Node のバージョンは変わらない。起動は beam-dashboard コマンド。power0 がダッシュボードを入れるときだけ、手を加えずに .devcontainer/beam-dashboard/ へコピーする。詳しくは install.sh の冒頭を参照。"
+}

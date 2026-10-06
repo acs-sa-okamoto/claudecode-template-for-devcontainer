@@ -25,6 +25,18 @@
 set -e
 warn() { echo "[power-base] 警告: $*"; }
 
+# apt で入れる。保守の終わった OS（Debian 11 など）では、更新版の置き場（-security）が配布元から消えて
+# 404 になり、ふつうに入れると失敗する。そのときは元のリリースの版で入れ直す（-t <コードネーム>）。
+apt_install() {
+  apt-get update >/dev/null 2>&1 || true   # 一部の取得元が失敗しても、取れた分で続ける
+  if ! DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$@"; then
+    codename="$(. /etc/os-release 2>/dev/null; echo "${VERSION_CODENAME:-}")"
+    [ -n "$codename" ] || return 1
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends -t "$codename" "$@" || return 1
+  fi
+  rm -rf /var/lib/apt/lists/*
+}
+
 # 1) 足りない道具（sqlite3: power4 のタスク DB 用 / curl: Claude Code の取得用）
 need=""
 command -v sqlite3 >/dev/null 2>&1 || need="$need sqlite3"
@@ -33,9 +45,7 @@ if ! command -v claude >/dev/null 2>&1 && ! command -v curl >/dev/null 2>&1; the
 fi
 if [ -n "$need" ]; then
   if command -v apt-get >/dev/null 2>&1; then
-    { apt-get update \
-      && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $need \
-      && rm -rf /var/lib/apt/lists/*; } || warn "入れられませんでした:$need"
+    apt_install $need || warn "入れられませんでした:$need"
   elif command -v apk >/dev/null 2>&1; then
     apk add --no-cache $(echo "$need" | sed 's/sqlite3/sqlite/') bash || warn "入れられませんでした:$need"
   else

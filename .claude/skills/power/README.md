@@ -99,10 +99,11 @@ mkdir -p <対象repo>/.claude && cp -r "$T/.claude/skills" <対象repo>/.claude/
 
 ### タスクダッシュボード（任意）
 
-`data/tasks.db` の状況をブラウザで見たいとき、`power0-onboard` がテンプレの `.beam/dashboard/`（Node22 の自己完結アプリ）を repo にコピーし、devcontainer に Node feature ＋ ポート 3939 を追加する。
+`data/tasks.db` の状況をブラウザで見たいとき、`power0-onboard` がテンプレの `.beam/dashboard/`（Node 24 の自己完結アプリ）を repo にコピーし、devcontainer に**ダッシュボード専用の Node**（ローカル feature `beam-dashboard`）＋ ポート 3939 を追加する。
 
-- **view モード**（Notion 不要・読取専用）で `http://localhost:3939/` に一覧表示。power4 が `data/tasks.db` を作るまでは空一覧（正常）。power の tasks.db は **beam4 互換スキーマ**なのでそのまま表示される。
-- **プロジェクトが Node でなくても** devcontainer features は共存するので Node を併載できる（コンテナはやや重くなる）。
+- 起動は **`beam-dashboard`**。**view モード**（Notion 不要・読取専用）で `http://localhost:3939/` に一覧表示。power4 が `data/tasks.db` を作るまでは空一覧（正常）。power の tasks.db は **beam4 互換スキーマ**なのでそのまま表示される。
+- **プロジェクトの Node のバージョンは変わらない**。専用の Node はプロジェクトとは別の場所に入り、PATH にも足さない。公式の node feature で入れると PATH の先頭に入り、レガシーの Node 16 や 18 まで置き換えてしまうので使わない。Node を使わないプロジェクトでも同じ（Node は見えないまま）。
+- `bash .beam/dashboard/run.sh` を直接実行すると、プロジェクトの Node で動いてしまうので、`beam-dashboard` から起動する。
 - **`.beam/` は `.git/info/exclude` に入れる**（あなたのツールであり repo 本体・PR に混ぜない。**OSS 貢献では PR を汚さないため必須**）。
 
 ### リポジトリを用意する（★重要）

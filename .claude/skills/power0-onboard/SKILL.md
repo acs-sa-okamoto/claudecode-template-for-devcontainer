@@ -31,6 +31,7 @@ argument-hint: "[空（cwd のリポジトリを準備）]"
 - **土台の判定**（power4 以降の PR 作成に必須。無いと beam-sync が「前提未達」で止まる）:
   - **設定**: `devcontainer.json` の `features` に `"./power-base"`（構成によっては `"./.devcontainer/power-base"`・`"../power-base"`。step3 の表）と `initializeCommand` の `mkdir` があり、`.devcontainer/power-base/` の中身がこのスキルの `templates/power-base/` と同じか。テンプレートから作った repo は同等の設定（`github-cli` feature・`~/.config/gh` のマウント・post-create での `gh auth setup-git` と gh-stack の導入）を devcontainer に直接持っているので、それでもよい。
   - **コンテナ内なら、実際に使えるか**: `gh api user --jq .login`・`gh stack --help`・`sqlite3 -version` がすべて通るか。
+  - **ダッシュボードを入れてある（`.beam/dashboard/` がある）なら、その Node も土台と同じ扱いで確かめる**: `features` に `"./beam-dashboard"` があり、`.devcontainer/beam-dashboard/` がスキル側の `templates/beam-dashboard/` と同じか。以前の power0 の方式（ダッシュボードのために公式 node feature の version `22` を足したもの）が残っていたら、step3 のダッシュボードの手順で `./beam-dashboard` に置き換える。node feature の行を外すのは、プロジェクト自身がその Node を使っていないことを AskUserQuestion で確かめてから。
 - 分岐:
   - **既に準備済み**（コンテナ内 or ビルド可 ＋ CLAUDE.md コマンドあり ＋ 既存テスト green ＋ **土台が使える**）→ 「準備不要」と報告し `/power`（または `/power1-scope`）へ案内して**終了**。
   - **コンテナ外で、`.devcontainer` が無い／土台の設定が無い・スキル側と違う** → **Stage 1**（step2〜3。既存の `.devcontainer` は補完だけ）。
@@ -46,6 +47,7 @@ argument-hint: "[空（cwd のリポジトリを準備）]"
 ## step3 (Stage 1): DevContainer 生成 ＋ CLAUDE.md 初版 → ハンドオフ
 - 検出スタックに合う `.devcontainer/devcontainer.json`（必要なら `Dockerfile`）を生成する。**AI が考えて書くのは「そのシステム用」の部分だけ**:
   - ランタイムの**バージョンを固定**、`postCreateCommand` で依存導入、必要な system ライブラリを含める。
+  - **OS はできるだけ保守中のものを選ぶ**（ランタイムが古くても）: 保守の切れた OS のイメージでは、apt で入れられない物が出る。Debian 11 は土台が元のリリースの版から入れ直すので問題ないが、Debian 10 以前は配布元に取得先が無く、sqlite3 が入らない（power4 はタスク DB を作らずに進み、ダッシュボードにも何も出ない）。古いランタイムが要るときは、保守中の OS のイメージ（`mcr.microsoft.com/devcontainers/base:bookworm` など）に、そのランタイムを feature で入れる（Node なら `ghcr.io/devcontainers/features/node:1` の `version` に古い版を指定。これはプロジェクト自身の Node なので node feature でよい。ダッシュボードのために足すのとは別の話）。
   - 既存 `.devcontainer` があれば**尊重・補完**（安易に上書きしない。下の土台が無ければ足すだけ）。
 - **（必須）power の土台を入れる**: `devcontainer.json` に次の2つを足し、下のブロックで土台のフォルダをコピーする。
   1. `features` に `"./power-base": {}`（devcontainer.json の場所によって書き方が変わる。下の表）
@@ -89,8 +91,23 @@ argument-hint: "[空（cwd のリポジトリを準備）]"
     | リポジトリ直下の `.devcontainer.json` | `"./.devcontainer/power-base": {}` |
     | `.devcontainer/<名前>/devcontainer.json`（複数構成） | `"../power-base": {}`（使う構成すべてに足す） |
 - **（任意）タスクダッシュボードの配備**: `data/tasks.db` の状況をブラウザで見たい場合。AskUserQuestion で要否を確認（既定＝入れる）。入れる場合:
-  - テンプレートリポジトリ（**`template.conf` の `TEMPLATE_REPO`**。リポジトリ直下の `.claude/skills/template.conf`、無ければこのスキルのベースディレクトリの1つ上にあるもの。`$HOME/.claude` では探さない——Windows の Claude Code から WSL を呼ぶと別ディレクトリを指すため。個人名・組織名を決め打ちしない）の `.beam/dashboard/`（Node22 + better-sqlite3 の自己完結アプリ。`SOURCE_DB_PATH` 既定 `../../data/tasks.db` を**読取専用**参照。NOTION_* 無しなら **view モード**で Notion 不要）を **対象 repo の `.beam/dashboard/` にコピー**する。
-  - 生成 devcontainer に (a) `ghcr.io/devcontainers/features/node:1`（version `22`。**プロジェクトのスタックが Node でなくても** feature は共存できるので dashboard 用に併載）(b) `"forwardPorts": [3939]` ＋ `portsAttributes` の `3939` に `"onAutoForward": "openPreview"` を追加する。
+  - テンプレートリポジトリ（**`template.conf` の `TEMPLATE_REPO`**。リポジトリ直下の `.claude/skills/template.conf`、無ければこのスキルのベースディレクトリの1つ上にあるもの。`$HOME/.claude` では探さない——Windows の Claude Code から WSL を呼ぶと別ディレクトリを指すため。個人名・組織名を決め打ちしない）の `.beam/dashboard/`（Node 24 + better-sqlite3 の自己完結アプリ。`SOURCE_DB_PATH` 既定 `../../data/tasks.db` を**読取専用**参照。NOTION_* 無しなら **view モード**で Notion 不要）を **対象 repo の `.beam/dashboard/` にコピー**する。
+  - **ダッシュボード専用の Node を入れる**: このスキルの `templates/beam-dashboard/` を、手を加えずに `.devcontainer/beam-dashboard/` へコピーし（毎回スキル側の中身で置き換える）、`features` に `"./beam-dashboard": {}` を足す（devcontainer.json の場所による書き方は、上の power-base の表と同じ）:
+    ```bash
+    # スクリプトは「このスキルの置き場所」から辿る（作業ディレクトリや $HOME を基準にしない）
+    B='<このスキルのベースディレクトリ>'   # Claude Code が「Base directory for this skill」で示す値をそのまま入れる
+    B="$(printf '%s' "$B" | tr '\134' '/')"                    # \ を / に揃える（\134 はバックスラッシュ）
+    if command -v wslpath >/dev/null 2>&1; then                # WSL の bash のときだけ変換する
+      case "$B" in
+        //wsl.localhost/*/*|//wsl[$]/*/*) B="/${B#//*/*/}" ;;   # \\wsl.localhost\<distro>\x → /x
+        [A-Za-z]:/*) B="$(wslpath -u "$B")" ;;                  # C:\x → /mnt/c/x
+      esac
+    fi
+    mkdir -p .devcontainer && rm -rf .devcontainer/beam-dashboard && cp -r "$B/templates/beam-dashboard" .devcontainer/
+    ```
+    - **ダッシュボードのために公式の node feature（`ghcr.io/devcontainers/features/node`）を足してはいけない**: PATH の先頭に入るので、プロジェクト自身の Node（レガシーなら 16 や 18 など）まで置き換わり、ビルド・テスト・characterization テストの結果が変わってしまう。`beam-dashboard` は Node 24 をプロジェクトとは別の場所に入れて PATH には足さないので、**プロジェクトの Node は変わらない**（Node を使わないプロジェクトには Node が見えないまま）。
+    - ダッシュボードは **`beam-dashboard` コマンドで起動する**（専用の Node で `.beam/dashboard/run.sh` を動かす）。`bash .beam/dashboard/run.sh` を直接実行すると、プロジェクトの Node（または Node 無し）で動いてしまう。
+  - devcontainer.json に `"forwardPorts": [3939]` ＋ `portsAttributes` の `3939` に `"onAutoForward": "openPreview"` を追加する。
   - **`.beam/`（＋ `node_modules`/`dist`/`data`）を `.git/info/exclude` に追加**する（これは**あなたのツールであり repo 本体・PR に混ぜない**。特に **OSS 貢献（fork）では PR を汚さないため必須**）。
   - power4 が `data/tasks.db` を作るまでは**空一覧**で起動する（正常）。power の tasks.db は **beam4 互換スキーマ**なのでそのまま表示される。
 - `templates/claude-md-template.md` を埋めて `CLAUDE.md` 初版を作成（コマンドは暫定。Stage 2 で確定）。
@@ -104,7 +121,7 @@ argument-hint: "[空（cwd のリポジトリを準備）]"
 ## step4 (Stage 2): 依存導入・ビルド・実行・既存テスト
 - 依存導入 → build → typecheck/lint → 既存テスト実行。失敗は原因を調べ**反復修正**する（古い依存・欠落設定・ネイティブビルド等）。**green を目標**。
 - 起動コマンドで**実際にアプリが立ち上がる**ことを確認する（可能なら）。
-- **（ダッシュボードを配備した場合）** `bash .beam/dashboard/run.sh` で起動確認（未ビルドなら自己ビルド＝数分。view モードで `http://localhost:3939/` に空一覧が出れば OK。`better-sqlite3` は Node22 でネイティブビルドされる。失敗時は `pnpm rebuild better-sqlite3`）。
+- **（ダッシュボードを配備した場合）** `beam-dashboard` で起動確認（動き続けるコマンドなのでバックグラウンドで起動する。未ビルドなら自己ビルド＝数分。`curl -sf http://127.0.0.1:3939/health` が通り、view モードで `http://localhost:3939/` に空一覧が出れば OK）。ビルドに失敗したら `.beam/dashboard/node_modules` と `.beam/dashboard/dist` を消してから `beam-dashboard` をやり直す（専用の Node で入れ直される。`pnpm rebuild` を直接打つとプロジェクトの Node で作り直されてしまうので使わない）。
 - どうしても解決できない失敗は**正直に報告**し、人間向けの具体的な手順・原因を残す（握りつぶさない）。
 
 ## step5 (Stage 2): 挙動ベースライン ＝ characterization テスト（半自動・回帰ネット）
@@ -134,3 +151,4 @@ argument-hint: "[空（cwd のリポジトリを準備）]"
 ## テンプレートファイル
 - `templates/claude-md-template.md` — 生成する `CLAUDE.md` の雛形（コマンド表中心）。**step3 / step6 で使用**。
 - `templates/power-base/` — DevContainer の土台（ローカル feature。`devcontainer-feature.json`・`install.sh`・`setup.sh`）。**手を加えずに** `.devcontainer/power-base/` へコピーする。**step3 で使用**（step1 の判定でも中身を比べる）。
+- `templates/beam-dashboard/` — タスクダッシュボード専用の Node と起動コマンド `beam-dashboard`（ローカル feature。`devcontainer-feature.json`・`install.sh`）。ダッシュボードを入れるときだけ、**手を加えずに** `.devcontainer/beam-dashboard/` へコピーする。**step3 で使用**（step1 の判定でも中身を比べる）。
