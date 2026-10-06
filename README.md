@@ -19,13 +19,13 @@ Claude Code + DevContainer で「曖昧な要望 → PRD → 要件定義 → �
 準備から、PRD とリポジトリの作成、DevContainer で開く、beam で開発を始めるところまでを、このページ1枚で案内しています。
 準備の大部分は、ページにある「準備用プロンプト」を Claude デスクトップアプリに貼り付けるだけで、Claude が行います。
 
-1. [コンテナ起動セット（container-starter-kit.zip）](./container-starter-kit.zip?raw=true) をダウンロードする
+1. [コンテナ起動セット（container-starter-kit.zip）](https://raw.githubusercontent.com/acs-sa-okamoto/claudecode-template-for-devcontainer/main/container-starter-kit.zip) をダウンロードする
 2. 展開し、`コンテナ起動セット` フォルダの中の `利用方法.html` をブラウザで開く
 3. `利用方法.html` の手順に従う
 
 使うもの: Claude デスクトップアプリ・WSL2（Ubuntu）・WSL に入れる Docker Engine・VS Code（Docker Desktop は使いません）
 
-> リンクからダウンロードできないときは、このリポジトリのファイル一覧で `container-starter-kit.zip` を開き、右上のダウンロードボタンから取得してください。
+> リンクからダウンロードできないときは、[container-starter-kit.zip のページ](./container-starter-kit.zip) を開き、右上の「Download raw file」ボタン（下向き矢印）から取得してください。
 
 ---
 
