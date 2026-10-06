@@ -49,7 +49,7 @@ Claude Code が DevContainer 内の開発作業で登録するタスク（ロー
 
 | 区分 | 採用 |
 |---|---|
-| 言語 / ランタイム | TypeScript（strict）/ Node.js 22+ |
+| 言語 / ランタイム | TypeScript（strict）/ Node.js 24（`.beam/dashboard/package.json` の engines で `24.x` に固定。DevContainer と同じ版） |
 | パッケージマネージャ | pnpm |
 | サーバー | Hono + `@hono/node-server` |
 | DB | better-sqlite3（SQLite） |
