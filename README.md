@@ -17,7 +17,7 @@ Claude Code + DevContainer で「曖昧な要望 → PRD → 要件定義 → �
 
 ### 0. 前提
 
-WSL2（Ubuntu）・Docker Desktop・VS Code ＋ Dev Containers 拡張・Claude Code を用意し、**WSL の中で** GitHub CLI にログインしておきます（`gh auth login`）。
+WSL2（Ubuntu）・Docker・VS Code ＋ Dev Containers 拡張・Claude Code を用意し、**WSL の中で** GitHub CLI にログインしておきます（`gh auth login`）。
 
 あわせて、**WSL の git に名前とメールアドレスを設定**しておきます。設定していないと、to-prd が PRD をコミットするところで止まります（DevContainer の中でも同じ設定が使われます）。
 
@@ -25,6 +25,58 @@ WSL2（Ubuntu）・Docker Desktop・VS Code ＋ Dev Containers 拡張・Claude C
 git config --global user.name "あなたの名前"
 git config --global user.email "あなたのメールアドレス"
 ```
+
+**Docker は次のどちらか一方**を使います（同じ WSL で両方を使うと、ぶつかって動きません）。to-prd（下の「1. リポジトリを作る」）だけなら Docker は要らず、「2. DevContainer で開く」から必要になります。
+
+- **Docker Desktop**: Windows では一番手軽です。ただし Docker 社の利用条件では、従業員 250 人以上または年間売上 1,000 万ドル以上の企業が業務で使う場合、有料の契約が必要です。会社の契約状況を確認してから使ってください。
+- **WSL に入れた Docker Engine**: 無料です。手順は下にあります。VS Code は、WSL から開いたフォルダでは WSL の中の Docker を使うので、設定の変更は要りません（フォルダは必ず WSL から開きます）。
+
+<details>
+<summary>WSL に Docker Engine を入れる手順（Docker Desktop を使わない場合）</summary>
+
+Docker Desktop が入っていて、この WSL との連携（Docker Desktop の Settings → Resources → WSL integration）が有効なら、先に Docker Desktop をアンインストールするか、連携を切ってください。以下は、すべて WSL のターミナルで実行します（Ubuntu 22.04 と 24.04 で確認済み）。
+
+1. **systemd が動いているか確かめる。** `ps -p 1 -o comm=` で `systemd` と出れば 2 へ進みます。出ないときは次を実行し、Windows の PowerShell で `wsl --shutdown` してから WSL を開き直します（既にある `/etc/wsl.conf` の設定は消しません）。
+
+   ```bash
+   grep -q '^\[boot\]' /etc/wsl.conf 2>/dev/null || printf '\n[boot]\nsystemd=true\n' | sudo tee -a /etc/wsl.conf > /dev/null
+   ```
+
+   それでも `systemd` と出ないときは、`/etc/wsl.conf` に `[boot]` が既にあって `systemd=true` が無い状態です。`[boot]` の下に `systemd=true` を書き足して、もう一度 `wsl --shutdown` します。
+
+2. **Docker の公式リポジトリを登録して、Docker Engine を入れる。** 最初の `sudo -v` でパスワードを入力しておくと、残りをまとめて貼り付けても途中で止まりません。
+
+   ```bash
+   sudo -v
+   sudo apt-get update
+   sudo apt-get install -y ca-certificates curl
+   sudo install -m 0755 -d /etc/apt/keyrings
+   sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+   sudo chmod a+r /etc/apt/keyrings/docker.asc
+   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   sudo apt-get update
+   sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+   ```
+
+3. **WSL を起動したら Docker も自動で起動するようにする。**
+
+   ```bash
+   sudo systemctl enable --now docker
+   ```
+
+4. **sudo なしで docker を使えるようにする。** 実行したら WSL のターミナルを開き直します（反映されないときは PowerShell で `wsl --shutdown` してから開き直します）。
+
+   ```bash
+   sudo usermod -aG docker $USER
+   ```
+
+5. **動作確認。** `Hello from Docker!` と出れば完了です。
+
+   ```bash
+   docker run --rm hello-world
+   ```
+
+</details>
 
 ### 1. リポジトリを作る
 
@@ -64,7 +116,7 @@ to-prd を更新するときは、クローンしたフォルダで `git pull` �
 
 ### 2. DevContainer で開く
 
-VS Code でフォルダを開き「**Dev Containers: コンテナーで再度開く**」を実行します。
+WSL のターミナルでクローンしたフォルダに移り、`code .` で VS Code を開いてから「**Dev Containers: コンテナーで再度開く**」を実行します（必ず WSL から開きます。WSL の gh のログインをコンテナで使うため、また WSL に入れた Docker Engine を使う場合も、この開き方で使われます）。
 初回は post-create が依存インストール・ダッシュボードのビルド・gh 認証設定を自動で行います。
 
 ### 3. 初期設定（.env）— task-bridge 用
