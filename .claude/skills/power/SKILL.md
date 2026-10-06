@@ -90,7 +90,7 @@ bash "$B/../skills-update/scripts/refresh-skills-from-template.sh"
 
 ### 1-1. 準備度チェックと既存進捗の検出
 
-- **準備度チェック（readiness ゲート）**: リポジトリが power で作業できる状態かを確認する — ① git 管理下か ② `CLAUDE.md` にコマンド表（build/test/起動）があるか ③（分かれば）build/test が通るか ④ `.devcontainer` の有無 ⑤ 挙動ベースライン（characterization テスト）の有無。**未整備なら、先に `Skill({ skill: "power0-onboard" })` を案内・実行**して「動く・測れる・コマンドが分かる・回帰ネットがある」状態にしてから power1 へ進む（特に**ドキュメントの無いレガシー／リファクタ用途**で重要。power0 は 2 ステージ・再開可能で、途中で「Reopen in Container→再実行」の人間ハンドオフが入る）。準備済みなら次へ。
+- **準備度チェック（readiness ゲート）**: リポジトリが power で作業できる状態かを確認する — ① git 管理下か ② `CLAUDE.md` にコマンド表（build/test/起動）があるか ③（分かれば）build/test が通るか ④ `.devcontainer` の有無 ⑤ 挙動ベースライン（characterization テスト）の有無 ⑥ **power の土台**（devcontainer に `power-base`、またはテンプレート由来の同等の設定があるか。コンテナ内なら `gh api user --jq .login`・`gh stack --help`・`sqlite3 -version` が通るか。**無いと power4 以降の PR 作成が「前提未達」で止まる**ので、power1〜3 を進める前のここで見つける）。**未整備なら、先に `Skill({ skill: "power0-onboard" })` を案内・実行**して「動く・測れる・コマンドが分かる・回帰ネットがある」状態にしてから power1 へ進む（特に**ドキュメントの無いレガシー／リファクタ用途**で重要。power0 は 2 ステージ・再開可能で、途中で「Reopen in Container→再実行」の人間ハンドオフが入る）。準備済みなら次へ。
 - **既存進捗の検出**: `docs/spec/*/feature-requirements.md` / `understanding-brief.md` / `design/` / `docs/tasks/*/` / `conformance-report.md` を Glob で確認する。
   - 何も無い → **新規開始**（power1 から。`{機能名}` は power1 が決める）。
   - 既存あり（＝過去に機能を追加した repo。**2つ目以降**）→ 検出した機能一覧と各進捗を表示し、AskUserQuestion で **「新しい機能を追加する（新規 power1 から）」／「進行中の機能を再開する（機能とフェーズを選択）」** を確認する。新規なら power1 が新しい `{機能名}` とブランチを作る（**power1 が分岐前に default を最新化**するので、マージ済みの過去機能の上に積める）。

@@ -45,12 +45,28 @@
 ## 事前準備（power 実行前に1回）
 
 ### 前提ツール
-- **git** / **gh**（GitHub CLI・`repo` スコープで認証済み） / **sqlite3**（power4 のタスクDB用） / **VS Code ＋ DevContainer** / **WSL bash**
+- WSL 側: **git** / **gh**（GitHub CLI。**WSL で `gh auth login` 済み**であること——コンテナはこのログインを共有する） / **VS Code ＋ DevContainer** / **WSL bash**
+- コンテナ内の道具（Claude Code・gh・gh-stack・sqlite3）は、power0 が入れる**土台（`power-base`）**に含まれる（下記）
 - `CLAUDE.md`（build/test/起動コマンド）— 無ければ `power0-onboard` が生成する
 
 ### power スキルは repo に同梱する（マウントは使わない）
 
-power はコンテナ内のツールを使うため **Claude Code をコンテナ内で動かす**。Claude Code は **repo 直下の `.claude/skills/` をプロジェクトスキルとして読む**ので、**スキルを repo に置けばマウント不要**（ホストにスキルフォルダが無い PC でも動く）。ワークスペース mount でコンテナにも自動で入る。DevContainer には **claude-code feature だけ**入れる（`~/.claude` マウントは使わない＝複雑さを避ける）。
+power はコンテナ内のツールを使うため **Claude Code をコンテナ内で動かす**。Claude Code は **repo 直下の `.claude/skills/` をプロジェクトスキルとして読む**ので、**スキルを repo に置けばマウント不要**（ホストにスキルフォルダが無い PC でも動く）。ワークスペース mount でコンテナにも自動で入る。`~/.claude` はマウントしない（同じ名前のスキルが PC とリポジトリの両方にあると PC 側が使われ、repo 側を最新にしても効かなくなるため）。
+
+### DevContainer の土台（`power-base`）
+
+power4 以降はスタックド PR を作るので、コンテナの中に **gh のログイン・gh-stack** などが要る。これを「**土台**」として1つのフォルダにまとめてあり、power0 がどのリポジトリにも**同じ中身**で入れる（中身は `power0-onboard/templates/power-base/`。DevContainer のローカル feature）。
+
+| 入るもの | 備考 |
+|---|---|
+| Claude Code（ネイティブ版） | Node を使わないので、Python・Go・Java 等の Node の無いイメージでも入る（公式の claude-code feature は、Node の無いイメージではビルドごと失敗する） |
+| GitHub CLI ＋ WSL の gh のログインの共有 | WSL の `~/.config/gh` をマウントして使う。コンテナのユーザー名に左右されない |
+| `gh auth setup-git`・gh-stack・git の名前（無いときだけ） | コンテナ起動のたびに整える。失敗しても起動は止めず、起動ログに `[power-base] ⚠️` で直し方を出す |
+| sqlite3 | power4 のタスク DB 用 |
+
+- 入れ方は「`.devcontainer/power-base/` をコピーし、`devcontainer.json` に2か所（`features` の `"./power-base": {}` と、`~/.config/gh` を作る `initializeCommand`）足す」だけ。**既存の devcontainer にも同じ手順で足せる**。
+- 起動ログに `[power-base] 準備完了` と出れば整っている。WSL で gh にログインしていないと警告が出る（WSL で `gh auth login` → コンテナで `bash /usr/local/share/power-base/setup.sh`。再ビルドは要らない）。
+- テンプレートから作った repo は、同等の設定をテンプレートの devcontainer が直接持っているので、power-base は入れない。
 
 **スキルの投入・更新は `/power` が自動でやる**（step1-0）。実行のたびに `.claude/skills/` ＋ `.claude/skills-catalog/` ＋ `docs/rule/ai-security-guardrails.md` を**テンプレートの最新で無条件に上書き**する。
 

@@ -1,0 +1,31 @@
+{
+  "id": "power-base",
+  "version": "1.0.0",
+  "name": "power base (Claude Code, GitHub CLI with the host's login, gh-stack, sqlite3)",
+  "description": "power ワークフローの土台。どのリポジトリでも中身は同じなので、手を加えずに .devcontainer/power-base/ へコピーし、devcontainer.json の features に \"./power-base\": {} を1行足すだけで使う。詳しくは install.sh の冒頭を参照。",
+  "dependsOn": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/node",
+    "ghcr.io/anthropics/devcontainer-features/claude-code"
+  ],
+  "containerEnv": {
+    "GH_CONFIG_DIR": "/mnt/host-gh"
+  },
+  "mounts": [
+    {
+      "source": "${localEnv:HOME}/.config/gh",
+      "target": "/mnt/host-gh",
+      "type": "bind"
+    }
+  ],
+  "postStartCommand": "bash /usr/local/share/power-base/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code"
+      ]
+    }
+  }
+}

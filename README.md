@@ -109,6 +109,8 @@ Claude Code に「**beam を実行**」と伝えると、オーケストレー�
 
 このテンプレートから作っていないリポジトリ（社内の既存システムなど）にはスキルが入っていません。その場合も **PC ではなく、そのリポジトリにスキル一式をコピー**します（手順は [.claude/skills/power/README.md](./.claude/skills/power/README.md)）。以後は `/power` が起動のたびにリポジトリのスキルを最新にします。PC に入れない理由は、上の「方法B」の注意と同じです。
 
+DevContainer が無いリポジトリでは、最初の `/power` で power0 が DevContainer を作ります。PR の作成に要る道具（Claude Code・gh のログインの共有・gh-stack・sqlite3）は「土台」として一緒に入り、既存の DevContainer があればそれに足します。
+
 ## スキルの更新
 
 スキルはリポジトリごとに同梱して配っているので、**テンプレート側が新しくなっても、手元のリポジトリは自動では変わりません**。最新を取り込むには `/skills-update` を実行します（`/power` は起動のたびに自動で行います）。差分だけ見たいときは `/skills-update --check`。
