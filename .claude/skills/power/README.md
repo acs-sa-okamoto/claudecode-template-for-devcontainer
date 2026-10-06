@@ -89,7 +89,7 @@ git -C "$T" sparse-checkout set .claude/skills
 mkdir -p <対象repo>/.claude && cp -r "$T/.claude/skills" <対象repo>/.claude/
 ```
 
-> **PC の `~/.claude/skills/` にスキル一式を入れて、そこから `/power` を起動する方法は勧めない。** 同じ名前のスキルが PC とリポジトリの両方にあると、Claude Code は **PC 側を使う**（Claude Code の仕様）。リポジトリ側を最新にしても使われず、PC にコピーした時点の古い版のまま気づかずに動き続ける。PC に置いてよいのは to-prd だけ（テンプレートの README の「方法B」）。
+> **PC の `~/.claude/skills/` にスキル一式を入れて、そこから `/power` を起動する方法は勧めない。** 同じ名前のスキルが PC とリポジトリの両方にあると、Claude Code は **PC 側を使う**（Claude Code の仕様）。リポジトリ側を最新にしても使われず、PC にコピーした時点の古い版のまま気づかずに動き続ける。PC に置いてよいのは to-prd だけ（テンプレートの README のクイックスタートで配っている「コンテナ起動セット」は、この形で to-prd と template.conf を PC に置く）。
 > テンプレートの作り手が自分の PC にスキル一式（正本）を置いているのは、正本そのものが常に最新だからで、利用者がまねる構成ではない。
 
 - `<テンプレートリポジトリ>` は、使っているテンプレートの `ホスト/オーナー/リポジトリ`（例: `github.com/owner/claudecode-template-for-devcontainer`）。テンプレートの `.claude/skills/template.conf` に書かれている `TEMPLATE_REPO` と同じものを指定する。この手順だけはスキルがまだ無い状態で打つので、設定ファイルを読めず手で書く必要がある。
