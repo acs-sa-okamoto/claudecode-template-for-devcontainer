@@ -56,7 +56,7 @@ description: 非エンジニアやジュニアエンジニアが曖昧な要望�
    - どの順で作るべきか（共有基盤・MVP コアを先に、依存する側を後に）
 3. **最初に作るサブプロジェクトをユーザーに選んでもらう**（AskUserQuestion で候補を提示）。
 4. **分解結果を記録する**（後続で失わないため）:
-   - `docs/spec/{最初の要件名}/decomposition.md` に「全体像」を残す（全サブプロジェクト・依存関係・推奨ビルド順・今回スコープ）。書式は `references/decomposition-template.md` に従う。
+   - `docs/spec/{最初の要件名}/decomposition.md` に「全体像」を残す（全サブプロジェクト・依存関係・推奨ビルド順・今回スコープ）。書式は `templates/decomposition-template.md` に従う。
    - 最初の PRD「## 10. スコープ外」に、残りのサブプロジェクトを **「別プロジェクト（後日対応）」として明記**する（後続 Claude Code が混入しないためのガードレール）。
 5. **以降は最初のサブプロジェクトだけを対象に通常フローへ**。要件名・リポジトリも**そのサブプロジェクト単位**で決める（1サブプロジェクト＝1リポジトリ＝1 PRD）。
 6. 残りのサブプロジェクトは、**後日それぞれ to-prd を再実行**して個別に立ち上げる旨を伝える（`decomposition.md` がその起点になる）。
@@ -186,7 +186,7 @@ gh repo create "$REPO_OWNER/{要件名}" \
 $HOME/{要件名}/docs/spec/{要件名}/product-requirements.md
 ```
 
-**PRDの書式と内容は `references/prd-template.md` を必ず読み込んでから生成すること。** テンプレートには各セクションの構成、記法ルール、見本が含まれている。書式を勝手に変えてはいけない。
+**PRDの書式と内容は `templates/prd-template.md` を必ず読み込んでから生成すること。** テンプレートには各セクションの構成、記法ルール、見本が含まれている。書式を勝手に変えてはいけない。
 
 ディレクトリが存在しない場合は事前に作成してから書き込む。
 
@@ -217,7 +217,7 @@ git push
 - 必須CLI: `gh`（GitHub CLI、`repo` スコープで認証済み）、`git`
 - 実行シェル: WSL の bash 推奨（Windows から実行する場合は `wsl bash -c "..."`）
 
-## 参照ファイル
+## テンプレートファイル
 
-- `references/prd-template.md` — PRDの出力テンプレート、記法ルール、見本。**ステップ8のPRD生成時に必ず読み込むこと。**
-- `references/decomposition-template.md` — 分解メモ（全体像）の書式。**ステップ2で分解が必要と判断した場合のみ読み込むこと。**
+- `templates/prd-template.md` — PRDの出力テンプレート、記法ルール、見本。**ステップ8のPRD生成時に必ず読み込むこと。**
+- `templates/decomposition-template.md` — 分解メモ（全体像）の書式。**ステップ2で分解が必要と判断した場合のみ読み込むこと。**

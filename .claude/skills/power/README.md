@@ -64,13 +64,17 @@ power はコンテナ内のツールを使うため **Claude Code をコンテ�
 1. 対象リポジトリをクローンする（fork か private コピー。下の「リポジトリを用意する」参照）。
 2. VS Code で開いて `/power`（または `/power0-onboard`）を実行する。**power0 が `.beam/`（ダッシュボード）や `.devcontainer/` を repo にコピー**する。
 
-**唯一の手動 bootstrap**: 「コンテナ内で、`~/.claude` にも repo にもスキルが無い」場合だけは `/power` 自体を起動できないので、先に手で入れる（ホストで `/power` を起動できるならこれも不要）:
+**テンプレートから作っていないリポジトリには、最初に一度だけ手でスキル一式を入れる**（`/power` 自体がまだそのリポジトリに無いため）。以後は `/power` が起動のたびに自動で最新にする:
 
 ```bash
-git clone --depth 1 --filter=blob:none --sparse https://<テンプレートリポジトリ> /tmp/tpl
-git -C /tmp/tpl sparse-checkout set .claude/skills
-cp -r /tmp/tpl/.claude/skills <対象repo>/.claude/skills
+T="$(mktemp -d)"
+git clone --depth 1 --filter=blob:none --sparse https://<テンプレートリポジトリ> "$T"
+git -C "$T" sparse-checkout set .claude/skills
+mkdir -p <対象repo>/.claude && cp -r "$T/.claude/skills" <対象repo>/.claude/
 ```
+
+> **PC の `~/.claude/skills/` にスキル一式を入れて、そこから `/power` を起動する方法は勧めない。** 同じ名前のスキルが PC とリポジトリの両方にあると、Claude Code は **PC 側を使う**（Claude Code の仕様）。リポジトリ側を最新にしても使われず、PC にコピーした時点の古い版のまま気づかずに動き続ける。PC に置いてよいのは to-prd だけ（テンプレートの README の「方法B」）。
+> テンプレートの作り手が自分の PC にスキル一式（正本）を置いているのは、正本そのものが常に最新だからで、利用者がまねる構成ではない。
 
 - `<テンプレートリポジトリ>` は、使っているテンプレートの `ホスト/オーナー/リポジトリ`（例: `github.com/owner/claudecode-template-for-devcontainer`）。テンプレートの `.claude/skills/template.conf` に書かれている `TEMPLATE_REPO` と同じものを指定する。この手順だけはスキルがまだ無い状態で打つので、設定ファイルを読めず手で書く必要がある。
 
