@@ -9,7 +9,7 @@ Claude Code + DevContainer で「曖昧な要望 → PRD → 要件定義 → �
   Git 連携（フェーズ別 PR 作成）までを対話で自動化します。**これがこのテンプレートの本体です。**
 - **タスクダッシュボード（task-bridge）** — フォルダを開くと自動起動し、実装タスクの進捗を
   ブラウザ（http://localhost:3939）でリアルタイム表示。Notion へのタスク転送もできます。
-- **DevContainer 完結** — Node 22 / pnpm / GitHub CLI / Claude Code を設定済み。ホスト環境を汚しません。
+- **DevContainer 完結** — Node 24 / pnpm / GitHub CLI / Claude Code を設定済み。ホスト環境を汚しません。
 
 ---
 
@@ -18,6 +18,13 @@ Claude Code + DevContainer で「曖昧な要望 → PRD → 要件定義 → �
 ### 0. 前提
 
 WSL2（Ubuntu）・Docker Desktop・VS Code ＋ Dev Containers 拡張・Claude Code を用意し、**WSL の中で** GitHub CLI にログインしておきます（`gh auth login`）。
+
+あわせて、**WSL の git に名前とメールアドレスを設定**しておきます。設定していないと、to-prd が PRD をコミットするところで止まります（DevContainer の中でも同じ設定が使われます）。
+
+```bash
+git config --global user.name "あなたの名前"
+git config --global user.email "あなたのメールアドレス"
+```
 
 ### 1. リポジトリを作る
 
