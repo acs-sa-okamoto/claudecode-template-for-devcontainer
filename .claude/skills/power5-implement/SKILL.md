@@ -50,6 +50,9 @@ argument-hint: "[機能名（任意）/ TASK-ID / Phase N / 空]"
 - 既存規約の準拠: docs/spec/{機能名}/note.md（＝understanding-brief 由来）と docs/tasks/{機能名}/code-map.md に従い、既存の命名・構造・エラー処理・パターンに合わせる。
 - 既存を壊さない: understanding-brief の REG（回帰リスク）に該当する既存機能の挙動を変えない。
 - 設計準拠: docs/spec/{機能名}/design/（change-plan ほか）に従う。契約変更が要るなら該当ファイルを更新し理由を記録。
+- 画面（このフェーズが画面に触る場合）: docs/ui/standard.md（画面の決まり）と design/screens.md（画面・導線・状態・文言）に従う。
+  色・文字・余白はトークン（または既存の決まりの値）だけを使う。要素はロール名・ラベルで探せるように作る。
+  今回の機能と関係の無い画面の見た目は直さない（気づいた問題は返却に書く → power6 が backlog へ送る）。
 ## 対象タスク（依存順）: {TASK-XXXX のリストと task_type}
 ## 実装手順（タスクごとに Skill で実装エンジンを呼ぶ）
 - task_type=TDD:    Skill(skill="tdd-implement",    args="{機能名} {TASK-ID}")

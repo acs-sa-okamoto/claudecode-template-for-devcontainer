@@ -25,7 +25,8 @@ allowed-tools: AskUserQuestion, Skill, Read, Write, Glob, Bash, Artifact, TodoWr
 - **スキル同梱の基準・ツール**（`~/.claude/skills/slide-maker/assets/`）
   - `design-directions.md` … step3 が毎回適用する**標準デザイン**の定義（トークン・例外時のリファレンス翻訳手順・design-spec の出力形式）
   - `visual-rubric.md` … step5 の磨き上げ判定基準（A=欠陥/B=原則/C=定型回避。作業フォルダに同名ファイルがあればそちらを優先）
-  - `render-pptx.ps1` … PPTX を PNG に書き出す（PowerPoint COM。視覚レビュー用）
+  - `render-pptx.ps1` … PPTX を PNG に書き出す（PowerPoint COM。視覚レビュー用。`pwsh -File` で実行）
+  - `pptx-postprocess.js` … pptxgenjs の出力を日本語デッキ向けに後処理する（テーマの東アジア書体をそろえる・段落内で重複した `<a:pPr>` を消す）。step4・step5 の生成後に必ず通す
 
 # パイプライン
 
@@ -153,6 +154,7 @@ AskUserQuestion({
    })
    ```
    - 委譲先がフォルダ内のファイルを読めるよう、`outline.md` / `design-spec.md` / `design-mock.html` が `{作業フォルダ}` に揃っていることを確認してから呼ぶ。
+   - 生成時は下の「**PPTX 生成の注意（Windows・日本語）**」を守る（全ランに書体指定・タイトルの左揃えをレイアウト側で指定・生成後に `pptx-postprocess.js` を通す 等）。
    - **生成に使ったスクリプトはスクラッチパッドに保持する**（step5 の磨き上げで修正・再生成に再利用するため）。
 3. 生成後、レンダリング（`render-pptx.ps1`）して全枚を提示し、design-mock との見た目の差分があれば説明する。
 4. **レビュー・ゲート**（`{ステップ名}`＝「ドラフトPPTX」）で停止する。主目的は**内容の最終確認と design-mock の再現度**（細部の粗は step5 が拾う、と一言添える）。「修正したい」の場合は、内容修正なら `outline.md` を直して step1 へ、デザインの方向なら step3 に戻る。
@@ -163,10 +165,12 @@ AskUserQuestion({
 
 1. **基準の読み込み**: `{作業フォルダ}/visual-rubric.md` があればそれを、無ければスキル同梱の `assets/visual-rubric.md` を読む。基準は **A=欠陥（必ず直す）／B=原則（整列・階層・余白・反復・色・図解）／C=定型回避（AIっぽさ）** の3層。**パレット・トーンの判定基準は `design-spec.md`（無ければ `style-guide.md`）**。
 2. **対象の画像化**（対象は `<タイトル>_draft.pptx`。画像なしで磨き上げ判定をしない。**step4 で生成したレンダリングがあり対象に変更が無ければ、それを再利用してよい**）:
-   1. **PowerPoint COM（Windows + PowerPoint がある環境）**: 対象 pptx をスクラッチパッドにコピーし、同梱の `assets/render-pptx.ps1` を PowerShell で実行する（`-Path <コピー> -OutDir <scratchpad>/render`）。※PowerPoint で対象ファイルを開いているとロック競合するため、コピーを渡す。
+   1. **PowerPoint COM（Windows + PowerPoint がある環境）**: 対象 pptx をスクラッチパッドにコピーし、同梱の `assets/render-pptx.ps1` を **`pwsh -NoProfile -File`** で実行する（`-Path <コピー> -OutDir <scratchpad>/render`）。※PowerPoint で対象ファイルを開いているとロック競合するため、コピーを渡す。
    2. `soffice`（LibreOffice）+ `pdftoppm` がある環境ではそちらでも可。
    3. どちらも無い場合: python-pptx で座標リント（スライド外はみ出し・bbox 重なり・余白 <0.4"・フォント <10.5pt・パレット外の色）にフォールバックし、**「画像での目視はできていない」と明示**する。
 3. **批評（fresh eyes）**: レンダリング画像をサブエージェントに渡し、ルーブリックの **A → B → C の順**でスライドごとに指摘させる（自分で作った直後は欠陥を見逃しやすい。画像の目視は非対話処理なのでサブエージェント委譲でよい）。指摘には「スライド番号・現象・修正方針」を付けさせる。design-spec.md のパスも渡す。
+   - design-spec.md や slide-plan.md で**意図的な印**（例: 提出前に埋める赤字の「（要記入）」「（要確認）」）や意匠（縦ラベル・右下タグ）を決めている場合は、それを残骸・欠陥として扱わないよう批評役に明示する（伝えないと A 層の「残骸」として毎回挙がる）。
+   - 全スライドを1枚ずつ見せるより、2列×3段の一覧画像（Pillow で並べる）にすると、スライド間のズレ（タイトル位置・表の行の高さ・余白）を比べやすい。修正の確認は直したスライドだけで良い。
 4. **修正して最終版を生成**: step4 の生成スクリプトを修正し、**`<タイトル>.pptx`（最終名）として再生成**する。ドラフトは上書きせず残す（比較・巻き戻し用）。スクリプトが無い場合は pptx を unpack-edit する。
 5. **再検証**: 最終版を再レンダリングし、**A 層（欠陥）ゼロ**を確認する。修正サイクルは**最大2周**（B/C の軽微な指摘で無限に磨かない）。
 6. 「何をどう直したか」の一覧（スライド番号 → 指摘 → 対応）と、可能ならビフォー/アフターの画像を提示する。
@@ -179,6 +183,22 @@ AskUserQuestion({
   - `<タイトル>.pptx` を PowerPoint で開いて最終調整する。
   - 内容を変えたい → `outline.md` を編集して step1 から。デザインの方向を変えたい → step3 をやり直し（design-spec.md / design-mock.html を選び直し）。仕上げの基準を変えたい → `visual-rubric.md` を編集して step5 から。
 - **AI 生成物は人間がレビューし最終責任を持つ**こと、参考フォルダで裏取りできていない `（要確認）` 箇所がないか確認することを念押しする。
+
+---
+
+# PPTX 生成の注意（Windows・日本語）
+
+step4・step5 で pptxgenjs を使うときの落とし穴（すべて実際に起きたもの）。
+
+- **環境**: `node` が見つからなければ `export PATH="/c/Program Files/nodejs:$PATH"`。pptxgenjs はグローバル導入なので `export NODE_PATH="$(npm root -g)"` を付けて実行する。
+- **検証**: pptx スキルの `validate.py` は **`PYTHONUTF8=1` を付けて**実行する（付けないと日本語の XML を cp932 で読もうとして、全スライドで "Could not check" と誤判定する）。
+- **描画**: `render-pptx.ps1` は `pwsh`（PowerShell 7）で実行する。日本語コメントを含むため **BOM 付き UTF-8 で保存してある**（BOM が無いと `powershell.exe`〔5.1〕が cp932 で読んで構文エラーになる。編集するときは BOM を消さない）。
+- **書体**: pptxgenjs のテーマは東アジア書体（`ea`）が空で、日本語は游ゴシックになる。そのままだと、書体を指定しないランの日本語だけ游ゴシックで描かれ、欧文を含む行だけ大きく見える。**全ランに `fontFace` を付け**、生成後に `assets/pptx-postprocess.js` でテーマの `ea`・`Jpan` もそろえる。
+- **段落の書式の重複**: テキストボックスに `paraSpaceAfter` などの段落オプションを付けると、ランごとに `<a:pPr>` が重複して出る。validate は通るがスキーマ違反なので、`pptx-postprocess.js` で消す。
+- **タイトルの揃え**: `defineSlideMaster` のタイトルのプレースホルダは、`align: "left"` を書かないと中央揃えになる。
+- **表の1行だけを枠で囲む**: セルの罫線で囲むと、上辺が前の行の下罫と共有されて閉じない（半端な囲みになる）。行の位置に**枠だけの四角（塗りは透明度100）を重ねる**。
+- **改行の書き方**: 生成スクリプトを Bash のヒアドキュメントで書き換えると、`\\n` が潰れて文字列の中に本物の改行が入り、構文エラーになる。バックスラッシュを含む修正は Edit / Write で行う。
+- **語の途中での折り返し**: 狭い列（カード・表のセル）では、日本語が「ダ／ッシュボード」のように語の途中で割れやすい。列幅を調整するか、意味の切れ目で `\n` を入れる。
 
 ---
 

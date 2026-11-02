@@ -1,7 +1,7 @@
 # スキルカタログ
 
 `~/.claude/skills/` 配下の全スキルの索引。**新規開発は beam、既存改修は power、仕様変更は revise** が入口。
-最終更新: 2026-07-11（scope-options 追加・全24スキル）
+最終更新: 2026-11-02（ui-design・ui-renewal 追加・全27スキル）
 
 ---
 
@@ -11,6 +11,7 @@
 |---|---|
 | 曖昧な要望から新規プロダクトを立ち上げる | `/to-prd`（PRD＋リポジトリ作成）→ `/beam` |
 | 既存システムに機能を追加する／リファクタする | `/power`（未整備リポジトリは power0 が準備） |
+| 既存システムの UI を一新する（見た目が古い・ばらばら・使いにくい） | `/ui-renewal`（診断と方向決め → power で実装） |
 | 確定済みの仕様・設計を変更する | `/revise` |
 | 1つの要望を松竹梅＋フルの4案で比較・選択したい | `/beam` 開始時に「4案提案を含める」（`scope-options`） |
 | PR・ブランチ・ローカル変更をレビューする | `/code-review` |
@@ -30,9 +31,14 @@
 /power ─► (power0 準備) → power1(scope＋featureブランチ) → power2(理解)
           → power3(差分設計) → power4(タスク) → power5(実装) → power6(検証・PR・再レビュー)
 
+【既存 UI の一新】
+/ui-renewal ─► 診断（ui-design audit）→ ヒアリング → 要求書 → power1（種別: UI 一新）
+             → 新しい見た目の決まり＋見本（ui-design plan 一新）→ /power で power2〜6
+
 【横断】
 /revise …… 仕様変更の再入口（影響導出→部分再生成→再キュー）
 /code-review …… 多観点レビュー（beam/power の成果物が無くても動く）
+ui-design …… 画面の設計（beam3・power3）と実装後の磨き上げ（beam5・power6）。撮影は DevContainer の ui-shots
 ```
 
 ---
@@ -49,7 +55,7 @@
 | **beam5-implement** | 実装ディスパッチャ（フェーズ単位サブエージェント）。実データ検証・**要件適合ゲート**・drift 警告（→/revise） | `src/`・`code-map.md`・`conformance-report.md` | tdd/direct-implement・beam-sync |
 | **beam-sync** | Git 連携（トランクベース。フェーズブランチ＋スタックド PR→トランク。秘密ガード・冪等） | ブランチ・PR | beam1〜5・revise から呼ばれる |
 
-## power ファミリー（既存改修・8スキル）
+## power ファミリー（既存改修・9スキル）
 
 | スキル | 役割 | 主な出力 | 連携 |
 |---|---|---|---|
@@ -60,7 +66,8 @@
 | **power3-design** | 差分設計（既存契約・規約に準拠） | `design/change-plan.md` ほか差分契約 | service-boundary（任意） |
 | **power4-tasks** | タスク分解（beam4 互換 tasks.db・**回帰検証タスク**・要件＋回帰カバレッジゲート） | `TASK-*.md`・`overview.md`・tasks.db（テーブル=機能名） | estimate-storypoint |
 | **power5-implement** | 実装ディスパッチャ（note/code-map を staging して橋渡し・フェーズごとコミット） | `src/`・code-map 更新 | tdd/direct-implement |
-| **power6-verify** | 検証（実環境＋**回帰ガード**）・/code-review ループ（**CRITICAL/HIGH=0 で終了・最大2R**）・PR 作成＋PR 再レビュー。**upstream モードはクリーン PR**（process 生成物を除外） | `conformance-report.md`・PR | code-review |
+| **power6-verify** | 検証（実環境＋**回帰ガード**）・**UI の磨き上げ（触った画面だけ）**・/code-review ループ（**CRITICAL/HIGH=0 で終了・最大2R**）・PR 作成＋PR 再レビュー。**upstream モードはクリーン PR**（process 生成物を除外） | `conformance-report.md`・`ui-polish-report.md`・PR | code-review・ui-design |
+| **ui-renewal** | **既存 UI の一新の入口**。診断（ui-design audit）→ ヒアリング → 要求書 → power1（種別: UI 一新）→ 新しい見た目の決まりと見本（ui-design plan 一新）→ power2〜6 へ引き継ぎ。レベル1（見た目）・2（画面の中の使いやすさ）を扱い、レベル3（構成）は通常の機能に分ける | `ui-audit.md`・`renewal-brief.md`・`docs/ui/standard.md`（新） | ui-design・power1〜6 |
 
 ## 横断スキル（2）
 
@@ -69,7 +76,7 @@
 | **revise** | **仕様変更の再入口**（beam/power 共通）。影響を既存成果物から ID レベルで導出（🔵🟡🔴=影響判断の確からしさ）→承認→上流更新→下流の部分再生成→タスク再キュー→改定記録（`docs/revisions/`） | 再実装・再検証はしない（beam5/power5・ゲートに委譲）。beam の Git 反映は beam-sync 委譲 |
 | **code-review** | PR 番号／ブランチ／ローカル差分を自動判別し、A〜K の多観点（セキュリティ P0/P1・ロジック・非同期・エラー処理・整合・実データ・要件適合・可読性・設計・性能・テスト/CI）でレビュー。**指摘の品質検証**で誤検知を除去し、信頼性レベル付きレポートを出力 | 同梱の `references/ai-security-guardrails.md` が P0/P1 の唯一の出典。最終承認は人間 |
 
-## 共有エンジン（5・引数で要件名/機能名を受けるため beam/power 両対応）
+## 共有エンジン（6・引数で要件名/機能名を受けるため beam/power 両対応）
 
 | スキル | 役割 | 引数 |
 |---|---|---|
@@ -78,6 +85,7 @@
 | **estimate-storypoint** | SP・不確実性バッファ・複雑度を JSON で算出（非フィボナッチ・小数1位・アンカー相対） | タスクファイル or インライン |
 | **service-boundary** | Bounded Context 判定（既定モジュラモノリス・過分割抑止・「別製品級」は to-prd へのシグナル） | `{要件名}` or 機能一覧 |
 | **scope-options** | 1つの要望から**ミニマム/要望/リッチ/フル**の4案を系統導出（Kano プロトコル＋EN/DS チェックリスト＋出典規律）し、SP 比較→案の選択→（非要望案なら）再整列を駆動。beam2（define）/beam4（estimate）から呼ばれる | `define {要件名}` / `estimate {要件名}` |
+| **ui-design** | 画面の見た目と使いやすさ。**plan**（設計段階で画面・導線と手数の予算・状態・文言を決める。社内標準を同梱）→ **polish**（実装後に撮影し、A 欠陥・B 原則・U 使いやすさ・C AI っぽさで判定して見た目と文言だけを直す。review.html を人間が承認）／**audit**（今の画面の診断）。撮影と機械判定は DevContainer のローカル feature **ui-shots**（power0-onboard/templates/ui-shots） | `plan {名前} [新規\|追従\|一新]` / `polish {名前}` / `audit` |
 
 ## 入口・その他（2）
 
@@ -101,7 +109,7 @@
 
 1. **編集はここ（`~/.claude/skills/`＝authoritative）で行う**
 2. **開発用テンプレート**（**`template.conf` の `TEMPLATE_REPO`**）の `.claude/skills/` へ**ミラー同期**して push（`~/.claude/scripts/sync-skills.sh`。この README.md と `template.conf` も同じ相対位置へ複製される）
-3. **配布用テンプレート**へは、出すと決めたときだけ反映する（`~/.claude/scripts/publish-company-template.sh`）。開発用テンプレートのコミット済みの中身をまるごと写し、`template.conf` だけを配布先の値に保つ。開発用で push した変更が、そのまま同僚に届かないようにするための段差
+3. **配布用テンプレート**へは、出すと決めたときだけ **PR で**反映する（`~/.claude/scripts/publish-company-template.sh`。`--commit "説明"` → `--pr` → GitHub でマージして `--sync`、または承認が要らない設定なら `--merge`）。開発用テンプレートのコミット済みの中身をまるごと写し、`template.conf` だけを配布先の値に保つ。開発用で push した変更が、そのまま同僚に届かないようにするための段差
 4. 既存の派生リポジトリは `/skills-update` で最新化する（`/power` を通すときは起動時に自動で走る）。取り込み元はそのリポジトリの `template.conf` が指すテンプレート
 
 ### `template.conf` — 個人名・組織名を持つ唯一のファイル

@@ -82,6 +82,7 @@ CON: **CON-NN** 🔵[U] <継承する制約（スタック/規約/データモ�
 # 機能要求定義書（Feature Requirements）
 
 **機能名（Feature Name）:** [kebab-case-name]
+**種別:** [機能追加 / リファクタ / UI 一新（段階 n）]
 **対象プロダクト / リポジトリ:** [repo 名 / プロダクト名]
 **作成日:** YYYY-MM-DD
 **バージョン:** 1.0

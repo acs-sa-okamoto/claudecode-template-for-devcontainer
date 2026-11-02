@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>社内標準（業務アプリ版）の見本</title>
+<!--
+  社内標準（業務アプリ版）v1.0 を、架空の経費精算アプリに当てた見本。
+  #list（一覧）・#form（入力とエラー）・#empty（空の画面）・#dialog（取り消せない操作の確認）を切り替えて見る。
+  ui-design の plan（新規）は、これを元に docs/ui/mock.html を作る（中身はそのプロジェクトの画面と言葉に置き換える）。
+-->
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+<style>[hidden] { display: none !important; }</style>
+</head>
+<body class="ui-page">
+<div class="ui-shell">
+  <nav class="ui-nav" aria-label="メインメニュー">
+    <p class="ui-nav__brand">経費精算（見本）</p>
+    <ul class="ui-nav__list">
+      <li><a class="ui-nav__link" data-nav="apply" href="#list">経費の申請</a></li>
+      <li><a class="ui-nav__link" data-nav="approve" href="#empty">承認</a></li>
+      <li><a class="ui-nav__link" data-nav="account" href="#list">口座の登録</a></li>
+      <li><a class="ui-nav__link" data-nav="help" href="#list">使い方</a></li>
+    </ul>
+  </nav>
+  <div>
+    <header class="ui-topbar">
+      <p class="ui-topbar__brand">経費精算（見本）</p>
+      <button class="ui-btn ui-btn--secondary ui-btn--sm" type="button" aria-expanded="false">
+        <svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>メニュー
+      </button>
+    </header>
+    <main class="ui-main">
+
+      <!-- 一覧 -->
+      <section data-view="list">
+        <p class="ui-breadcrumb"><a href="#list">ホーム</a> / 経費の申請</p>
+        <div class="ui-page-header">
+          <div>
+            <h1 class="ui-h1">経費の申請</h1>
+            <p class="ui-page-header__lead">あなたが出した申請です。新しい順に並んでいます。</p>
+          </div>
+          <a class="ui-btn ui-btn--primary" href="#form">経費を申請する</a>
+        </div>
+        <div class="ui-alert ui-alert--success" role="status">
+          <svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12l5 5L19 7"/></svg>
+          <div>
+            <p class="ui-alert__title">「11月分の交通費」を申請しました</p>
+            <p class="ui-alert__body">承認されると、登録した口座に振り込まれます。</p>
+          </div>
+        </div>
+        <form class="ui-toolbar" role="search" onsubmit="return false">
+          <div class="ui-field">
+            <label class="ui-label" for="q">キーワード</label>
+            <input class="ui-input" id="q" placeholder="件名で探す">
+          </div>
+          <div class="ui-field">
+            <label class="ui-label" for="st">状態</label>
+            <select class="ui-select" id="st">
+              <option>すべて</option><option>承認待ち</option><option>差し戻し</option><option>承認済み</option><option>下書き</option>
+            </select>
+          </div>
+          <button class="ui-btn ui-btn--secondary" type="submit">絞り込む</button>
+        </form>
+        <p class="ui-count">全 23 件のうち 1〜5 件</p>
+        <div class="ui-table-wrap">
+          <table class="ui-table">
+            <thead>
+              <tr><th scope="col">件名</th><th scope="col">状態</th><th scope="col">申請日</th><th scope="col" class="ui-num">金額（円）</th><th scope="col">操作</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><a class="ui-link" href="#form">11月分の交通費</a></td><td><span class="ui-badge ui-badge--warning">承認待ち</span></td><td class="ui-nowrap">2026/11/02</td><td class="ui-num">12,480</td><td><a class="ui-btn ui-btn--text ui-btn--sm" href="#form">内容を見る</a></td></tr>
+              <tr><td><a class="ui-link" href="#form">取引先との打ち合わせの飲食費</a></td><td><span class="ui-badge ui-badge--danger">差し戻し</span></td><td class="ui-nowrap">2026/10/28</td><td class="ui-num">8,800</td><td><a class="ui-btn ui-btn--text ui-btn--sm" href="#form">直して出し直す</a></td></tr>
+              <tr><td><a class="ui-link" href="#form">研修の参加費（データ分析入門）</a></td><td><span class="ui-badge ui-badge--success">承認済み</span></td><td class="ui-nowrap">2026/10/20</td><td class="ui-num">33,000</td><td><a class="ui-btn ui-btn--text ui-btn--sm" href="#form">内容を見る</a></td></tr>
+              <tr><td><a class="ui-link" href="#form">名刺の作成</a></td><td><span class="ui-badge ui-badge--success">承認済み</span></td><td class="ui-nowrap">2026/10/15</td><td class="ui-num">4,400</td><td><a class="ui-btn ui-btn--text ui-btn--sm" href="#form">内容を見る</a></td></tr>
+              <tr><td><a class="ui-link" href="#form">出張の宿泊費（大阪）</a></td><td><span class="ui-badge">下書き</span></td><td class="ui-nowrap">—</td><td class="ui-num">14,300</td><td><a class="ui-btn ui-btn--text ui-btn--sm" href="#dialog">削除</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <nav aria-label="ページ">
+          <ul class="ui-pagination">
+            <li><a href="#list">前へ</a></li>
+            <li><span aria-current="page">1</span></li>
+            <li><a href="#list">2</a></li>
+            <li><a href="#list">3</a></li>
+            <li><a href="#list">次へ</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <!-- 入力とエラー -->
+      <section data-view="form" hidden>
+        <p class="ui-breadcrumb"><a href="#list">経費の申請</a> / 新しい申請</p>
+        <div class="ui-page-header">
+          <div>
+            <h1 class="ui-h1">経費を申請する</h1>
+            <p class="ui-page-header__lead">領収書の内容を入力してください。申請すると、上長に通知が届きます。</p>
+          </div>
+        </div>
+        <div class="ui-alert ui-alert--danger" role="alert">
+          <svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          <div>
+            <p class="ui-alert__title">入力に直すところが1件あります</p>
+            <p class="ui-alert__body"><a class="ui-link" href="#amount">金額</a>を直してから、もう一度申請してください。</p>
+          </div>
+        </div>
+        <form class="ui-form" novalidate onsubmit="return false">
+          <div class="ui-field">
+            <label class="ui-label" for="title">件名<span class="ui-required">必須</span></label>
+            <input class="ui-input" id="title" value="11月分の交通費" aria-describedby="title-help">
+            <p class="ui-help" id="title-help">あとで一覧から探すときの名前です。</p>
+          </div>
+          <div class="ui-field">
+            <label class="ui-label" for="amount">金額（円）<span class="ui-required">必須</span></label>
+            <input class="ui-input ui-input--num ui-input--short" id="amount" inputmode="numeric" value="１２４８０" aria-invalid="true" aria-describedby="amount-error">
+            <p class="ui-error" id="amount-error"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>金額は半角の数字で入力してください（例: 12480）。</p>
+          </div>
+          <div class="ui-field">
+            <label class="ui-label" for="date">使った日</label>
+            <input class="ui-input ui-input--short" id="date" type="date" value="2026-11-01">
+          </div>
+          <div class="ui-field">
+            <label class="ui-label" for="kind">区分</label>
+            <select class="ui-select ui-input--short" id="kind"><option>交通費</option><option>飲食費</option><option>備品</option><option>研修</option></select>
+          </div>
+          <div class="ui-field">
+            <label class="ui-label" for="memo">メモ</label>
+            <textarea class="ui-textarea" id="memo" aria-describedby="memo-help">東京駅〜新大阪駅（往復）。お客様との打ち合わせのため。</textarea>
+            <p class="ui-help" id="memo-help">200字まで。承認する人が読みます。</p>
+          </div>
+          <label class="ui-check"><input type="checkbox" checked>承認されたらメールで知らせる</label>
+          <div class="ui-actions">
+            <button class="ui-btn ui-btn--primary" type="submit">申請する</button>
+            <button class="ui-btn ui-btn--secondary" type="button">下書きを保存する</button>
+            <a class="ui-btn ui-btn--text" href="#list">キャンセル</a>
+          </div>
+        </form>
+      </section>
+
+      <!-- 空の画面 -->
+      <section data-view="empty" hidden>
+        <p class="ui-breadcrumb"><a href="#list">ホーム</a> / 承認</p>
+        <div class="ui-page-header">
+          <div>
+            <h1 class="ui-h1">承認する申請</h1>
+            <p class="ui-page-header__lead">あなたが承認する申請です。届いた順に並びます。</p>
+          </div>
+        </div>
+        <div class="ui-empty">
+          <p class="ui-empty__title">承認を待っている申請はありません</p>
+          <p class="ui-empty__body">部下が申請すると、ここに表示されます。届いたときはメールでも知らせます。</p>
+          <a class="ui-btn ui-btn--primary" href="#list">これまでに承認した申請を見る</a>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- 取り消せない操作の確認（#dialog） -->
+<div class="ui-backdrop" data-overlay="dialog" hidden>
+  <div class="ui-dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" aria-describedby="dlg-body">
+    <h2 class="ui-dialog__title" id="dlg-title">下書き「出張の宿泊費（大阪）」を削除しますか？</h2>
+    <p class="ui-dialog__body" id="dlg-body">削除すると元に戻せません。入力した内容と、添付した領収書の画像も消えます。</p>
+    <div class="ui-actions ui-actions--end">
+      <a class="ui-btn ui-btn--secondary" href="#list">キャンセル</a>
+      <button class="ui-btn ui-btn--danger" type="button">削除する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 見本の画面の切り替え（#list・#form・#empty・#dialog）
+(function () {
+  var NAV = { list: 'apply', form: 'apply', dialog: 'apply', empty: 'approve' };
+  function show() {
+    var v = location.hash.slice(1);
+    if (!NAV[v]) v = 'list';
+    var base = v === 'dialog' ? 'list' : v;
+    document.querySelectorAll('[data-view]').forEach(function (s) { s.hidden = s.getAttribute('data-view') !== base; });
+    document.querySelector('[data-overlay="dialog"]').hidden = v !== 'dialog';
+    document.querySelector('.ui-shell').inert = v === 'dialog';
+    document.querySelectorAll('.ui-nav__link').forEach(function (a) {
+      if (a.getAttribute('data-nav') === NAV[v]) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+  }
+  window.addEventListener('hashchange', show);
+  show();
+})();
+</script>
+</body>
+</html>

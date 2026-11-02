@@ -1,0 +1,6 @@
+{
+  "id": "ui-shots",
+  "version": "1.0.0",
+  "name": "ui-shots (screen capture and checks for the ui-design skill)",
+  "description": "画面の撮影と機械判定の道具（ui-design スキル用）。専用の Node・Playwright・Chromium・axe-core・日本語フォント（BIZ UDPゴシック）を、プロジェクトとは別の場所に入れて PATH には足さない。プロジェクトの Node のバージョンは変わらない。使うときは ui-shots コマンド（ui-shots --check で状態を確かめられる）。power0 がブラウザで使う画面のある repo にだけ、手を加えずに .devcontainer/ui-shots/ へコピーする。詳しくは install.sh の冒頭を参照。"
+}

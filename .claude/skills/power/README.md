@@ -6,7 +6,7 @@
 
 ---
 
-## スキル構成（8つ）
+## スキル構成（8つ＋UI 一新の入口）
 
 | # | スキル | 役割 | 主な出力 |
 |---|---|---|---|
@@ -17,7 +17,10 @@
 | 3 | `power3-design` | 変更設計 | `design/`（change-plan 等） |
 | 4 | `power4-tasks` | タスク分解 | `tasks.db` / `TASK-*.md` / `overview.md` |
 | 5 | `power5-implement` | 実装（工程ごとにコミット） | `src/` ＋ `code-map` 更新 |
-| 6 | `power6-verify` | 検証・回帰・PR・再レビュー | `conformance-report.md` ＋ **PR** |
+| 6 | `power6-verify` | 検証・回帰・**UI の磨き上げ（触った画面）**・PR・再レビュー | `conformance-report.md` ＋ **PR** |
+| 入口 | `ui-renewal` | **既存 UI の一新**（診断 → ヒアリング → 要求書 → 方向決め → power1〜6 へ） | `ui-audit.md`・`renewal-brief.md`・`docs/ui/standard.md`（新） |
+
+画面に触る機能では、power3 が `ui-design plan`（追従。既存の見た目に合わせた画面の設計）を、power6 が `ui-design polish`（実装後に撮影して、見た目と使いやすさを判定して直す）を呼ぶ。元からある見た目の問題は `docs/ui/backlog.md` に貯め、まとめて直すのは `/ui-renewal`。
 
 ## 全体フロー
 
@@ -38,6 +41,7 @@
 
 - **新規（ゼロから作る）→ `beam`**（PRD → 要件 → 設計 → タスク → 実装）
 - **既存に機能追加・リファクタ → `power`**
+- **既存の UI をまとめて一新 → `ui-renewal`**（見た目が古い・画面ごとにばらばら・使いにくい。診断と方向決めをしてから power に引き継ぐ）
 - **リファクタリング**の場合: `power1` の要件に **「外部挙動を変えない」不変条件**を明記し、`power0` の characterization テスト ＋ `power6` の回帰ガードで挙動不変を担保する。
 
 ---
@@ -105,6 +109,16 @@ mkdir -p <対象repo>/.claude && cp -r "$T/.claude/skills" <対象repo>/.claude/
 - **プロジェクトの Node のバージョンは変わらない**。専用の Node はプロジェクトとは別の場所に入り、PATH にも足さない。公式の node feature で入れると PATH の先頭に入り、レガシーの Node 16 や 18 まで置き換えてしまうので使わない。Node を使わないプロジェクトでも同じ（Node は見えないまま）。
 - `bash .beam/dashboard/run.sh` を直接実行すると、プロジェクトの Node で動いてしまうので、`beam-dashboard` から起動する。
 - **`.beam/` は `.git/info/exclude` に入れる**（あなたのツールであり repo 本体・PR に混ぜない。**OSS 貢献では PR を汚さないため必須**）。
+
+### 画面の撮影の道具（`ui-shots`）
+
+ブラウザで使う画面がある repo には、`power0-onboard` が devcontainer にローカル feature **`ui-shots`** を入れる。power6 の画面の確認と、ui-design の磨き上げ・ui-renewal の診断が使う。
+
+- **中身:** 専用の Node・Playwright・Chromium・axe-core・日本語フォント（BIZ UDPゴシック）。約 0.5GB。
+- **プロジェクトの Node は変わらない:** 中身はプロジェクトとは別の場所に入り、PATH にも足さないので、プロジェクトの Node と Playwright は変わらない。
+- **確かめ方:** `ui-shots --check` で状態を確かめる（「`[ui-shots] 準備完了`」が出れば使える）。
+- **古い OS でも使える:** Playwright が対応していない OS（Debian 11 など）でも、Debian 12 用の Chromium で動く。apt の無いイメージ（Alpine など）には入らない。
+- **撮影画像は git に入れない:** `.ui-shots/` に置き、`.git/info/exclude` で git の対象外にする。
 
 ### リポジトリを用意する（★重要）
 

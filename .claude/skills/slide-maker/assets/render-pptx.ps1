@@ -1,4 +1,4 @@
-# render-pptx.ps1 — PPTX の全スライドを PNG に書き出す（PowerPoint COM 使用）
+﻿# render-pptx.ps1 — PPTX の全スライドを PNG に書き出す（PowerPoint COM 使用）
 # 使い方: pwsh -File render-pptx.ps1 -Path <file.pptx> -OutDir <dir> [-Width 1600]
 # 前提: Windows + PowerPoint がインストールされていること。
 # 注意: PowerPoint COM は単一インスタンス。起動済みの PowerPoint があるときは Quit しない（ユーザーの作業を閉じないため）。

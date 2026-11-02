@@ -1,0 +1,84 @@
+/*
+ * 社内標準（業務アプリ版）v1.0 — デザイントークン
+ *
+ * 役割と使い方の決まりは references/standard-default.md。ここは値だけを持つ。
+ * 元にしたもの: slide-maker の標準デザイン（ダスティブルー×黒×白・角丸なし・BIZ UDPゴシック）。
+ * プロジェクトでは、このファイルを実装のトークンファイルとして写して使う
+ * （写した後は、プロジェクト側のファイルが値の正本。docs/ui/standard.md はその場所を指す）。
+ * 色の組み合わせのコントラスト比は standard-default.md の表で確かめてある。
+ */
+:root {
+  /* 色: 文字 */
+  --color-text: #0F1115;            /* 本文・見出し・ラベル（スライドの ink） */
+  --color-text-sub: #4B5563;        /* 補足・説明・パンくず（白・淡青・淡青（弱）のどれの上でも読める） */
+  --color-text-disabled: #6B7280;   /* 無効な部品の文字・入力欄の例示（placeholder） */
+
+  /* 色: 面 */
+  --color-surface: #FFFFFF;         /* 画面の地・主ボタンの文字 */
+  --color-surface-structure: #CBD8E5; /* 構造の色（スライドの淡青）: ナビゲーションの地・選択中の行 */
+  --color-surface-weak: #E5ECF2;    /* 淡青（弱）: 行にマウスを乗せたとき・バッジの地・読み込み中の帯 */
+
+  /* 色: 線 */
+  --color-border: #E5E7EB;          /* 区切り線（飾りの線。部品の輪郭には使わない） */
+  --color-border-control: #6B7280;  /* 入力欄の枠（白地に対して 3:1 以上） */
+
+  /* 色: 操作 */
+  --color-action: #0F1115;          /* 主ボタンの地・選択中の印・フォーカスの枠 */
+  --color-action-hover: #2B3038;    /* 主ボタンにマウスを乗せたとき */
+  --color-on-action: #FFFFFF;       /* 主ボタン・危険ボタンの文字 */
+
+  /* 色: 意味（状態を表すときだけ。文字の色に使えるのは danger と success だけ） */
+  --color-danger: #DC2626;          /* 削除・エラー（文字は白地の上だけ） */
+  --color-success: #2E7D32;         /* 完了・成功 */
+  --color-warning: #E0A800;         /* 注意（印だけ。文字には使わない） */
+  --color-info: #2E7DE0;            /* お知らせ（印だけ。文字には使わない） */
+  --color-overlay: rgba(15, 17, 21, 0.4); /* ダイアログの後ろ */
+
+  /* 文字 */
+  --font-sans: "BIZ UDPGothic", "Yu Gothic UI", "Yu Gothic", "Meiryo", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --font-mono: "BIZ UDGothic", "Consolas", "Menlo", monospace; /* コード・ID だけ */
+  --font-size-xs: 12px;   /* 注記・バッジ（これより小さくしない） */
+  --font-size-sm: 14px;   /* 表・ラベル・補足 */
+  --font-size-md: 16px;   /* 本文・入力・ボタン */
+  --font-size-lg: 18px;   /* 小見出し・ダイアログの題名 */
+  --font-size-xl: 22px;   /* 見出し */
+  --font-size-2xl: 28px;  /* ページの題名 */
+  --font-weight-normal: 400;
+  --font-weight-bold: 700;
+  --line-height-body: 1.7;     /* 本文 */
+  --line-height-compact: 1.5;  /* 表・ボタン・ラベル */
+  --line-height-heading: 1.4;  /* 見出し */
+  --letter-spacing-body: 0.02em;
+
+  /* 余白（4px 刻み。この値だけを使う） */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* 形 */
+  --radius: 0;                 /* 角丸なし（円は円のまま使ってよい） */
+  --border-thin: 1px;
+  --border-strong: 2px;
+  --bar-width: 4px;            /* バッジ・お知らせ・選択中のナビの左の帯 */
+  --focus-ring: 2px solid var(--color-action);
+  --focus-offset: 2px;
+  --control-height: 40px;      /* ボタン・入力欄の高さ */
+  --control-height-sm: 32px;   /* 表の中など、詰めたいところだけ */
+
+  /* 幅 */
+  --nav-width: 240px;
+  --form-max: 640px;           /* フォームの最大幅 */
+  --prose-max: 40em;           /* 文章の1行は 40 字前後まで */
+
+  /* 動き（色の切り替えだけ。登場の動きは使わない） */
+  --duration-fast: 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration-fast: 0ms; }
+}
