@@ -31,11 +31,23 @@ argument-hint: "[空（cwd のリポジトリを準備）]"
 - **土台の判定**（power4 以降の PR 作成に必須。無いと beam-sync が「前提未達」で止まる）:
   - **設定**: `devcontainer.json` の `features` に `"./power-base"`（構成によっては `"./.devcontainer/power-base"`・`"../power-base"`。step3 の表）と `initializeCommand` の `mkdir` があり、`.devcontainer/power-base/` の中身がこのスキルの `templates/power-base/` と同じか。テンプレートから作った repo は同等の設定（`github-cli` feature・`~/.config/gh` のマウント・post-create での `gh auth setup-git` と gh-stack の導入）を devcontainer に直接持っているので、それでもよい。
   - **コンテナ内なら、実際に使えるか**: `gh api user --jq .login`・`gh stack --help`・`sqlite3 -version` がすべて通るか。
+  - **撮影の道具（ui-shots）**: ブラウザで使う画面がある repo（step2 と同じ見方で判断する。Web フレームワーク・テンプレート・フロントエンドのビルド設定がある）なら、次を確かめる。
+    - `features` に `"./ui-shots"` があり、`.devcontainer/ui-shots/` がスキル側の `templates/ui-shots/` と同じか。
+    - コンテナ内なら、`ui-shots --check` が「準備完了」になるか。
+    - 無い・違うときの扱いは、下の分岐のとおり（土台と同じく、イメージに入るので再ビルドが要る）。
+    - 中身が同じでも、そのファイルが git に入っていない（`git ls-files .devcontainer/ui-shots` に4つそろっていない）なら、step3 の「コミットから漏れないようにする」だけを行ってコミットする。
   - **ダッシュボードを入れてある（`.beam/dashboard/` がある）なら、その Node も土台と同じ扱いで確かめる**: `features` に `"./beam-dashboard"` があり、`.devcontainer/beam-dashboard/` がスキル側の `templates/beam-dashboard/` と同じか。以前の power0 の方式（ダッシュボードのために公式 node feature の version `22` を足したもの）が残っていたら、step3 のダッシュボードの手順で `./beam-dashboard` に置き換える。node feature の行を外すのは、プロジェクト自身がその Node を使っていないことを AskUserQuestion で確かめてから。
 - 分岐:
-  - **既に準備済み**（コンテナ内 or ビルド可 ＋ CLAUDE.md コマンドあり ＋ 既存テスト green ＋ **土台が使える**）→ 「準備不要」と報告し `/power`（または `/power1-scope`）へ案内して**終了**。
-  - **コンテナ外で、`.devcontainer` が無い／土台の設定が無い・スキル側と違う** → **Stage 1**（step2〜3。既存の `.devcontainer` は補完だけ）。
-  - **コンテナ内で、土台の設定が無い・スキル側と違う** → step3 の「土台」だけを行ってコミットし、「**コマンドパレット → Dev Containers: Rebuild Container** → 起動後に `/power0-onboard` を再実行」と案内して終了する（土台はイメージに入るので再ビルドが要る）。
+  - **既に準備済み**（コンテナ内 or ビルド可 ＋ CLAUDE.md コマンドあり ＋ 既存テスト green ＋ **土台が使える** ＋ **画面がある repo なら ui-shots も使える**）→ 「準備不要」と報告し `/power`（または `/power1-scope`）へ案内して**終了**。
+  - **コンテナ外で、`.devcontainer` が無い／土台の設定が無い・スキル側と違う** → **Stage 1**（step2〜3。既存の `.devcontainer` は補完だけ。画面がある repo なら step3 で ui-shots も入れる）。
+  - **コンテナ内で、土台の設定が無い・スキル側と違う** → step3 の「土台」だけを行う（画面がある repo で ui-shots も無い・違うなら、step3 の「ui-shots」も一緒に行う）。コミットし、「**コマンドパレット → Dev Containers: Rebuild Container** → 起動後に `/power0-onboard` を再実行」と案内して終了する（土台はイメージに入るので再ビルドが要る）。
+  - **土台は整っていて、ui-shots の設定だけが無い・スキル側と違う**（画面がある repo。コンテナの内外を問わない。ui-renewal から呼ばれるのは多くがこの場合）:
+    1. step3 の「ui-shots」の手順だけを行う（コピー・`features` への追加・コミットから漏れないようにする）。
+    2. その変更だけをデフォルトブランチにコミットする（`git commit -m "power0: add ui-shots"`）。ほかに未コミットの変更があっても混ぜない。今いるのがデフォルトブランチでなければ、AskUserQuestion でどこにコミットするか確かめる。
+    3. 再ビルドを案内して終了する。案内の文はコンテナの内外で変える。
+       - コンテナ内: 「**コマンドパレット → Dev Containers: Rebuild Container**」
+       - コンテナ外: 「VS Code で『**Reopen in Container**』（すでにイメージがあるなら Rebuild Container）」
+    4. 再ビルドの後の案内に、`ui-shots --check` で「準備完了」を確かめることを入れる。呼び出し元が ui-renewal なら「`/ui-renewal` をやり直す」、それ以外なら「`/power0-onboard` を再実行」を案内する。
   - **コンテナ内で、土台の設定はあるのに使えない**（gh 未ログイン・gh-stack 無し）→ 「WSL のターミナルで `gh auth login` → このコンテナのターミナルで `bash /usr/local/share/power-base/setup.sh`」と案内する（**再ビルド不要**。コンテナは WSL の `~/.config/gh` をそのまま使う）。直ったら次の分岐へ。
   - **上記以外で未仕上げ**（コンテナ内で土台が使える、またはビルド可能）→ **Stage 2**（step4〜6）。
 
@@ -110,9 +122,46 @@ argument-hint: "[空（cwd のリポジトリを準備）]"
   - devcontainer.json に `"forwardPorts": [3939]` ＋ `portsAttributes` の `3939` に `"onAutoForward": "openPreview"` を追加する。
   - **`.beam/`（＋ `node_modules`/`dist`/`data`）を `.git/info/exclude` に追加**する（これは**あなたのツールであり repo 本体・PR に混ぜない**。特に **OSS 貢献（fork）では PR を汚さないため必須**）。
   - power4 が `data/tasks.db` を作るまでは**空一覧**で起動する（正常）。power の tasks.db は **beam4 互換スキーマ**なのでそのまま表示される。
+- **ブラウザで使う画面がある repo には、撮影の道具 `ui-shots` を入れる**:
+  - **使う所:** ui-design（polish・audit）と、power6 の画面の確認（QA-3・QA-4）。
+  - **入れるかどうか:** step2 のスタック検出で判断する（Web フレームワーク・テンプレート・フロントエンドのビルド設定がある）。画面が無い repo（API だけ・CLI・ライブラリ）には入れず、理由を一言述べる。
+  - **入れ方:** このスキルの `templates/ui-shots/` を、手を加えずに `.devcontainer/ui-shots/` へコピーし（毎回スキル側の中身で置き換える）、`features` に `"./ui-shots": {}` を足す（devcontainer.json の場所による書き方は、上の power-base の表と同じ）:
+    ```bash
+    # B は上の power-base の手順と同じ解決（このスキルのベースディレクトリ）
+    mkdir -p .devcontainer && rm -rf .devcontainer/ui-shots && cp -r "$B/templates/ui-shots" .devcontainer/
+    ```
+  - **コミットから漏れないようにする**（コピーの直後、Stage 1 のコミットの前に必ず行う）:
+    - **なぜ要るか:** repo の .gitignore によっては、ui-shots のファイル（特にロックファイル `npm-shrinkwrap.json`）が無視され、コミットに入らない。入らないと、ほかの人がクローンして作ったコンテナで ui-shots の依存を入れられない（`npm ci` が失敗する）。
+    - **すること:** 次のブロックで、4つのファイルがそろっているかを確かめ、無視されているファイルは `-f` で git に入れる。
+    ```bash
+    # 1) コピー元（スキル側）のファイルがそろっているか
+    for f in devcontainer-feature.json install.sh package.json npm-shrinkwrap.json; do
+      [ -f ".devcontainer/ui-shots/$f" ] || echo "⚠️ .devcontainer/ui-shots/$f がありません（スキル側の templates/ui-shots/ が欠けている。/skills-update でスキルを最新にしてから、もう一度コピーする）"
+    done
+    # 2) .gitignore に掛かっているファイルを -f で git に入れる。ui-shots は power0 が置く道具のフォルダなので、
+    #    プロジェクトの「無視する決まり」の対象外として扱う（.gitignore 自体は書き換えない）。
+    #    repo に同梱したスキル側の写しも、次にほかの人が power0 を動かすときのコピー元になるので同じく確かめる
+    for d in .devcontainer/ui-shots .claude/skills/power0-onboard/templates/ui-shots; do
+      [ -d "$d" ] || continue
+      for f in "$d"/*; do
+        if git check-ignore -q "$f"; then
+          git add -f "$f" && echo "無視されていたので -f で追加: $f（掛かっていた決まり: $(git check-ignore -v --no-index "$f" | cut -f1)）"
+        fi
+      done
+    done
+    ```
+    - **2回目以降:** `git check-ignore` は、すでに git に入っているファイルを「無視されている」とは言わない。だから2回目以降に動かしても何も起きない。一度 `-f` で入れたファイルは、その後の更新もふつうの `git add` で入る。
+    - **報告:** `-f` で入れたファイルがあれば、掛かっていた決まり（どの .gitignore の何行目か）を完了報告に書く。プロジェクトの決まりは変えずに、道具のファイルだけを入れたことが分かるようにする。
+  - **中身:**
+    - 専用の Node・Playwright・Chromium・axe-core・日本語フォント（BIZ UDPゴシック）。
+    - プロジェクトとは別の場所に入れて PATH には足さないので、**プロジェクトの Node と Playwright は変わらない**。
+    - イメージは約 0.5GB 増える。
+  - **古い OS:**
+    - Playwright が対応していない OS（Debian 11 など）でも、Debian 12 用の Chromium で動く（確認済み）。
+    - apt の無いイメージ（Alpine など）には入らない。そのときは、自動で撮影できないことを CLAUDE.md に書く。
 - `templates/claude-md-template.md` を埋めて `CLAUDE.md` 初版を作成（コマンドは暫定。Stage 2 で確定）。
 - **セキュリティガードレールの配置**: `docs/rule/ai-security-guardrails.md` が無ければ作成する（コピー元の解決順: リポジトリ直下 `.claude/skills/code-review/references/ai-security-guardrails.md` → `~/.claude/skills/code-review/references/…`）。beam5/power5・tdd/direct-implement が **P0 の参照先**とするファイルで、レガシー repo には無いため必須。
-- **Git コミット（Stage 1 の成果）**: git 管理下なら、生成した `.devcontainer/`・`CLAUDE.md`・`docs/rule/` をデフォルトブランチにコミットする（`git commit -m "power0: onboard stage1"`）。`.beam/` は `.git/info/exclude` 済みなので入らない。**作業ツリーを clean にしてから次へ**（power1 の pull・分岐を妨げないため）。
+- **Git コミット（Stage 1 の成果）**: git 管理下なら、生成した `.devcontainer/`・`CLAUDE.md`・`docs/rule/` をデフォルトブランチにコミットする（`git commit -m "power0: onboard stage1"`）。`.beam/` は `.git/info/exclude` 済みなので入らない。**ui-shots を入れた場合は、上の「コミットから漏れないようにする」を済ませてからコミットする**（`git add .devcontainer` だけでは、無視されているファイルは入らない）。**作業ツリーを clean にしてから次へ**（power1 の pull・分岐を妨げないため）。
 - **（必須）ホスト（WSL）の gh のログインを確かめる**: `gh api user --jq .login` が通るか。通らなければ「WSL のターミナルで `gh auth login`」を案内し、済んでからハンドオフする（コンテナはこのログインを共有する。未ログインでもコンテナは起動するが、power4 以降の PR 作成が止まる）。
 - **★明示ハンドオフ（ジュニア向け）**: 「**VS Code で『Reopen in Container』を実行 → コンテナ起動後に `/power0-onboard` を再実行**してください」と手順を具体的に案内し、**ここで一旦終了**する（再開可能）。
   - 理由も一言添える（コンテナ外では依存導入・ビルド疎通ができないため）。
@@ -121,6 +170,7 @@ argument-hint: "[空（cwd のリポジトリを準備）]"
 ## step4 (Stage 2): 依存導入・ビルド・実行・既存テスト
 - 依存導入 → build → typecheck/lint → 既存テスト実行。失敗は原因を調べ**反復修正**する（古い依存・欠落設定・ネイティブビルド等）。**green を目標**。
 - 起動コマンドで**実際にアプリが立ち上がる**ことを確認する（可能なら）。
+- **（ui-shots を入れた場合）** `ui-shots --check` が「`[ui-shots] 準備完了`」になることを確かめる。足りない物が出たら、その行の指示に従う（多くは再ビルド）。
 - **（ダッシュボードを配備した場合）** `beam-dashboard` で起動確認（動き続けるコマンドなのでバックグラウンドで起動する。未ビルドなら自己ビルド＝数分。`curl -sf http://127.0.0.1:3939/health` が通り、view モードで `http://localhost:3939/` に空一覧が出れば OK）。ビルドに失敗したら `.beam/dashboard/node_modules` と `.beam/dashboard/dist` を消してから `beam-dashboard` をやり直す（専用の Node で入れ直される。`pnpm rebuild` を直接打つとプロジェクトの Node で作り直されてしまうので使わない）。
 - どうしても解決できない失敗は**正直に報告**し、人間向けの具体的な手順・原因を残す（握りつぶさない）。
 
@@ -136,7 +186,8 @@ argument-hint: "[空（cwd のリポジトリを準備）]"
 - **Git コミット（Stage 2 の成果）**: git 管理下なら、characterization テスト・確定した `CLAUDE.md`・依存 lockfile 等をコミットする（`git commit -m "power0: onboard stage2"`）。**power1 が分岐する前に作業ツリーを clean に保つ**。
 
 ## step7: 完了報告
-- 準備状態サマリー: ビルド/テスト green・起動可否・characterization {N} 件・CLAUDE.md コマンド確定・`.devcontainer` 有無・**土台（gh のログイン名・gh-stack・sqlite3・Claude Code）**。
+- 準備状態サマリー: ビルド/テスト green・起動可否・characterization {N} 件・CLAUDE.md コマンド確定・`.devcontainer` 有無・**土台（gh のログイン名・gh-stack・sqlite3・Claude Code）**・（ui-shots を入れた場合）`ui-shots --check` の結果。
+- （ui-shots を入れた場合）`.gitignore` に掛かっていたため `-f` で git に入れたファイルがあれば、そのファイルと掛かっていた決まり（`.gitignore:124:package-lock.json` のような形）。
 - **未解決（人間対応）項目**を一覧で示す。
 - 次工程の案内: **`/power`（機能追加）** または **`/power1-scope`**。
   - **リファクタリング目的なら**: power1 の「要件」に **「外部挙動を変えない」不変条件**を明記し、**power6 の回帰ガード ＋ 本 step5 の characterization テスト**で挙動不変を守る、と一言添える。
@@ -152,3 +203,4 @@ argument-hint: "[空（cwd のリポジトリを準備）]"
 - `templates/claude-md-template.md` — 生成する `CLAUDE.md` の雛形（コマンド表中心）。**step3 / step6 で使用**。
 - `templates/power-base/` — DevContainer の土台（ローカル feature。`devcontainer-feature.json`・`install.sh`・`setup.sh`）。**手を加えずに** `.devcontainer/power-base/` へコピーする。**step3 で使用**（step1 の判定でも中身を比べる）。
 - `templates/beam-dashboard/` — タスクダッシュボード専用の Node と起動コマンド `beam-dashboard`（ローカル feature。`devcontainer-feature.json`・`install.sh`）。ダッシュボードを入れるときだけ、**手を加えずに** `.devcontainer/beam-dashboard/` へコピーする。**step3 で使用**（step1 の判定でも中身を比べる）。
+- `templates/ui-shots/` — 画面の撮影と機械判定の道具とコマンド `ui-shots`（ローカル feature。`devcontainer-feature.json`・`install.sh`・`package.json`・`npm-shrinkwrap.json`。ロックファイルの名前は、repo の .gitignore が package-lock.json を無視していても消えないため）。ブラウザで使う画面がある repo にだけ、**手を加えずに** `.devcontainer/ui-shots/` へコピーする。**step3 で使用**（step1 の判定でも中身を比べる）。テンプレートの `.devcontainer/ui-shots/` も同じ中身（sync-skills.sh の派生コピー）。

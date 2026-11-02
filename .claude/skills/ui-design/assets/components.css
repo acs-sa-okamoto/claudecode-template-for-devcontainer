@@ -1,0 +1,152 @@
+/*
+ * 社内標準（業務アプリ版）v1.0 — 部品の見た目（tokens.css を先に読み込む）
+ *
+ * クラスはすべて ui- で始まり、付けた要素にだけ効く（既存の画面を勝手に変えない）。
+ * React などの部品ライブラリを使うプロジェクトでは、この見た目を部品側に写す。素の HTML のプロジェクトはそのまま使える。
+ * 決まりの理由は references/standard-default.md。
+ */
+
+/* ---------- 土台 ---------- */
+.ui-page { margin: 0; background: var(--color-surface); color: var(--color-text); font-family: var(--font-sans); font-size: var(--font-size-md); line-height: var(--line-height-body); letter-spacing: var(--letter-spacing-body); -webkit-text-size-adjust: 100%; }
+.ui-page *, .ui-page *::before, .ui-page *::after { box-sizing: border-box; }
+.ui-h1 { margin: 0; font-size: var(--font-size-2xl); line-height: var(--line-height-heading); font-weight: var(--font-weight-bold); word-break: auto-phrase; }
+.ui-h2 { margin: var(--space-7) 0 var(--space-3); font-size: var(--font-size-xl); line-height: var(--line-height-heading); font-weight: var(--font-weight-bold); word-break: auto-phrase; }
+.ui-h3 { margin: var(--space-5) 0 var(--space-2); font-size: var(--font-size-lg); line-height: var(--line-height-heading); font-weight: var(--font-weight-bold); word-break: auto-phrase; }
+.ui-text { max-width: var(--prose-max); margin: 0 0 var(--space-4); }
+.ui-sub { color: var(--color-text-sub); font-size: var(--font-size-sm); line-height: var(--line-height-compact); }
+.ui-link { color: var(--color-text); text-decoration: underline; text-underline-offset: 3px; }
+.ui-link:hover { text-decoration-thickness: 2px; }
+.ui-link:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.ui-icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: square; }
+.ui-visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; } /* 読み上げにだけ伝える文字 */
+
+/* ---------- 画面の枠（ナビゲーション＋本文） ---------- */
+.ui-shell { display: grid; grid-template-columns: var(--nav-width) minmax(0, 1fr); min-height: 100vh; }
+.ui-nav { background: var(--color-surface-structure); padding: var(--space-5) 0; }
+.ui-nav__brand { margin: 0; padding: 0 var(--space-5) var(--space-5); font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); line-height: var(--line-height-heading); }
+.ui-nav__list { list-style: none; margin: 0; padding: 0; }
+.ui-nav__link { display: block; padding: var(--space-3) var(--space-5); border-left: var(--bar-width) solid transparent; color: var(--color-text); text-decoration: none; line-height: var(--line-height-compact); }
+.ui-nav__link:hover { background: var(--color-surface-weak); }
+.ui-nav__link[aria-current="page"] { background: var(--color-surface); border-left-color: var(--color-action); font-weight: var(--font-weight-bold); }
+.ui-nav__link:focus-visible { outline: var(--focus-ring); outline-offset: calc(-1 * var(--space-1)); }
+.ui-topbar { display: none; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 56px; padding: 0 var(--space-4); background: var(--color-surface-structure); }
+.ui-topbar__brand { margin: 0; font-size: var(--font-size-md); font-weight: var(--font-weight-bold); }
+.ui-main { min-width: 0; padding: var(--space-6); }
+.ui-breadcrumb { margin: 0 0 var(--space-2); color: var(--color-text-sub); font-size: var(--font-size-sm); line-height: var(--line-height-compact); }
+.ui-breadcrumb a { color: var(--color-text-sub); text-underline-offset: 3px; }
+.ui-page-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); }
+.ui-page-header__lead { margin: var(--space-2) 0 0; max-width: var(--prose-max); color: var(--color-text-sub); }
+
+/* ---------- ボタン ---------- */
+.ui-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-height); padding: 0 var(--space-4); border: var(--border-thin) solid transparent; border-radius: var(--radius); font: inherit; font-size: var(--font-size-md); font-weight: var(--font-weight-bold); line-height: var(--line-height-compact); text-decoration: none; white-space: nowrap; cursor: pointer; transition: background-color var(--duration-fast), color var(--duration-fast); }
+.ui-btn:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+/* 主ボタン: 黒地に白文字。1画面に1つ（その画面の主役の操作） */
+.ui-btn--primary { background: var(--color-action); border-color: var(--color-action); color: var(--color-on-action); }
+.ui-btn--primary:hover { background: var(--color-action-hover); border-color: var(--color-action-hover); }
+/* 副ボタン: 白地に黒の細枠（スライドの CTA と同じ形） */
+.ui-btn--secondary { background: var(--color-surface); border-color: var(--color-action); color: var(--color-text); }
+.ui-btn--secondary:hover { background: var(--color-surface-weak); }
+/* 文字だけのボタン: 表の中の「詳細」など、軽い操作 */
+.ui-btn--text { padding: 0 var(--space-2); background: transparent; color: var(--color-text); text-decoration: underline; text-underline-offset: 3px; }
+.ui-btn--text:hover { text-decoration-thickness: 2px; }
+/* 危険ボタン: 取り消せない操作を確かめるダイアログの実行ボタンだけ */
+.ui-btn--danger { background: var(--color-danger); border-color: var(--color-danger); color: var(--color-on-action); }
+.ui-btn--danger:hover { text-decoration: underline; text-underline-offset: 3px; }
+/* 危険な操作の入口（詳細画面の「削除」など）: 白地に赤の細枠 */
+.ui-btn--danger-outline { background: var(--color-surface); border-color: var(--color-danger); color: var(--color-danger); }
+.ui-btn--danger-outline:hover { box-shadow: inset 0 0 0 1px var(--color-danger); }
+.ui-btn:disabled, .ui-btn[aria-disabled="true"] { background: var(--color-border); border-color: var(--color-border); color: var(--color-text-disabled); box-shadow: none; text-decoration: none; cursor: not-allowed; }
+.ui-btn--sm { min-height: var(--control-height-sm); padding: 0 var(--space-3); font-size: var(--font-size-sm); }
+.ui-btn--icon { width: var(--control-height); padding: 0; } /* 文字の無いボタンは aria-label 必須 */
+/* ボタンの並び: フォームの末尾は左揃えで「主 → 副」、ダイアログは右揃えで「副 → 主」 */
+.ui-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.ui-actions--end { justify-content: flex-end; }
+
+/* ---------- 入力 ---------- */
+.ui-form { max-width: var(--form-max); }
+.ui-field { display: grid; gap: var(--space-1); margin: 0 0 var(--space-5); }
+.ui-label { display: flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); font-weight: var(--font-weight-bold); line-height: var(--line-height-compact); }
+.ui-required { padding: 0 var(--space-1); background: var(--color-action); color: var(--color-on-action); font-size: var(--font-size-xs); font-weight: var(--font-weight-bold); line-height: var(--line-height-compact); }
+.ui-help { margin: 0; color: var(--color-text-sub); font-size: var(--font-size-sm); line-height: var(--line-height-compact); }
+.ui-input, .ui-select, .ui-textarea { width: 100%; min-height: var(--control-height); padding: var(--space-2) var(--space-3); border: var(--border-thin) solid var(--color-border-control); border-radius: var(--radius); background: var(--color-surface); color: var(--color-text); font: inherit; font-size: var(--font-size-md); line-height: var(--line-height-compact); }
+.ui-input--num { text-align: right; font-variant-numeric: tabular-nums; }
+.ui-input--short { max-width: 240px; } /* 金額・日付など、短い値の欄 */
+.ui-form .ui-actions { margin-top: var(--space-6); }
+.ui-textarea { min-height: 120px; line-height: var(--line-height-body); resize: vertical; }
+.ui-input::placeholder, .ui-textarea::placeholder { color: var(--color-text-disabled); }
+.ui-input:focus-visible, .ui-select:focus-visible, .ui-textarea:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.ui-input[aria-invalid="true"], .ui-select[aria-invalid="true"], .ui-textarea[aria-invalid="true"] { border: var(--border-strong) solid var(--color-danger); }
+.ui-input:disabled, .ui-select:disabled, .ui-textarea:disabled { background: var(--color-border); color: var(--color-text-disabled); cursor: not-allowed; }
+.ui-error { display: flex; align-items: flex-start; gap: var(--space-1); margin: 0; color: var(--color-danger); font-size: var(--font-size-sm); font-weight: var(--font-weight-bold); line-height: var(--line-height-compact); }
+.ui-error .ui-icon { width: 18px; height: 18px; margin-top: 1px; }
+.ui-check { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--control-height); cursor: pointer; }
+.ui-check input { width: 20px; height: 20px; margin: 0; accent-color: var(--color-action); }
+.ui-check input:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+/* ---------- 表 ---------- */
+.ui-table-wrap { overflow-x: auto; } /* 狭い画面では表だけを横に動かす（画面全体は横に動かさない） */
+.ui-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); line-height: var(--line-height-compact); }
+.ui-table th { padding: var(--space-3); border-bottom: var(--border-strong) solid var(--color-text); font-weight: var(--font-weight-bold); text-align: left; white-space: nowrap; }
+.ui-table td { padding: var(--space-3); border-bottom: var(--border-thin) solid var(--color-border); vertical-align: middle; }
+/* 1列目（件名など）は 10 字より細くしない。狭い画面で1〜2字ずつ折れて読めなくなるのを防ぎ、代わりに表を横に動かす */
+.ui-table th:first-child, .ui-table td:first-child { min-width: 10em; }
+.ui-table tbody tr:hover { background: var(--color-surface-weak); }
+.ui-table tbody tr[aria-selected="true"] { background: var(--color-surface-structure); box-shadow: inset var(--bar-width) 0 0 var(--color-action); }
+.ui-num, .ui-table .ui-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ui-nowrap { white-space: nowrap; }
+.ui-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3); margin: 0 0 var(--space-4); }
+.ui-toolbar .ui-field { flex: 0 1 240px; min-width: 0; margin: 0; }
+.ui-count { margin: 0 0 var(--space-2); color: var(--color-text-sub); font-size: var(--font-size-sm); }
+.ui-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); margin: var(--space-4) 0 0; padding: 0; list-style: none; font-size: var(--font-size-sm); }
+.ui-pagination a, .ui-pagination [aria-current="page"] { display: inline-flex; align-items: center; justify-content: center; min-width: var(--control-height); min-height: var(--control-height); padding: 0 var(--space-2); border: var(--border-thin) solid var(--color-border-control); color: var(--color-text); text-decoration: none; }
+.ui-pagination a:hover { background: var(--color-surface-weak); }
+.ui-pagination a:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.ui-pagination [aria-current="page"] { background: var(--color-action); border-color: var(--color-action); color: var(--color-on-action); font-weight: var(--font-weight-bold); }
+
+/* ---------- 状態の印・知らせ ---------- */
+/* バッジ: 淡青（弱）の地＋黒の文字＋左の帯（帯の色で種類を補う。色だけに意味を持たせない） */
+.ui-badge { display: inline-flex; align-items: center; padding: 2px var(--space-2); border-left: var(--bar-width) solid var(--color-text-sub); background: var(--color-surface-weak); color: var(--color-text); font-size: var(--font-size-xs); font-weight: var(--font-weight-bold); line-height: var(--line-height-compact); white-space: nowrap; }
+.ui-badge--success { border-left-color: var(--color-success); }
+.ui-badge--warning { border-left-color: var(--color-warning); }
+.ui-badge--danger { border-left-color: var(--color-danger); }
+.ui-badge--info { border-left-color: var(--color-info); }
+/* お知らせ: 白地＋細枠＋左の帯＋アイコン。文字は黒（意味色の文字にしない） */
+.ui-alert { display: flex; align-items: flex-start; gap: var(--space-3); margin: 0 0 var(--space-5); padding: var(--space-3) var(--space-4); border: var(--border-thin) solid var(--color-border); border-left: var(--bar-width) solid var(--color-text-sub); background: var(--color-surface); line-height: var(--line-height-compact); }
+.ui-alert__title { margin: 0; font-weight: var(--font-weight-bold); word-break: auto-phrase; }
+.ui-alert__body { margin: var(--space-1) 0 0; }
+.ui-alert--success { border-left-color: var(--color-success); }
+.ui-alert--warning { border-left-color: var(--color-warning); }
+.ui-alert--danger { border-left-color: var(--color-danger); }
+.ui-alert--info { border-left-color: var(--color-info); }
+.ui-alert--success > .ui-icon { color: var(--color-success); }
+.ui-alert--danger > .ui-icon { color: var(--color-danger); }
+/* 一時的な知らせ: 右下。成功だけ自動で消える（5秒）。エラーは閉じるまで残す */
+.ui-toast { position: fixed; right: var(--space-5); bottom: var(--space-5); max-width: 400px; border-color: var(--color-text); }
+/* 空の画面: 何が無いか＋次にすること＋主ボタン（絵は使わない） */
+.ui-empty { max-width: var(--form-max); padding: var(--space-7) var(--space-5); border: var(--border-thin) solid var(--color-border); }
+.ui-empty__title { margin: 0 0 var(--space-2); font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); line-height: var(--line-height-heading); word-break: auto-phrase; }
+.ui-empty__body { margin: 0 0 var(--space-5); color: var(--color-text-sub); }
+/* 読み込み中: 中身の形をした帯（動かさない）。300ms 未満なら出さない */
+.ui-skeleton { display: block; height: 1em; background: var(--color-surface-weak); }
+
+/* ---------- ダイアログ ---------- */
+.ui-backdrop { position: fixed; inset: 0; display: grid; place-items: center; padding: var(--space-4); background: var(--color-overlay); }
+.ui-dialog { width: min(100%, 560px); padding: var(--space-5); border: var(--border-thin) solid var(--color-text); background: var(--color-surface); }
+.ui-dialog__title { margin: 0 0 var(--space-3); font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); line-height: var(--line-height-heading); word-break: auto-phrase; }
+.ui-dialog__body { margin: 0; }
+.ui-dialog .ui-actions { margin-top: var(--space-5); }
+
+/* ---------- タブ ---------- */
+.ui-tabs { display: flex; gap: var(--space-5); margin: 0 0 var(--space-5); border-bottom: var(--border-thin) solid var(--color-border); }
+.ui-tab { margin-bottom: -1px; padding: var(--space-2) 0; border: 0; border-bottom: 3px solid transparent; background: none; color: var(--color-text-sub); font: inherit; font-weight: var(--font-weight-bold); cursor: pointer; }
+.ui-tab[aria-selected="true"] { border-bottom-color: var(--color-action); color: var(--color-text); }
+.ui-tab:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+/* ---------- 狭い画面（767px 以下） ---------- */
+@media (max-width: 767px) {
+  .ui-shell { grid-template-columns: minmax(0, 1fr); }
+  .ui-shell > .ui-nav { display: none; } /* 上の帯の「メニュー」から開く */
+  .ui-topbar { display: flex; }
+  .ui-main { padding: var(--space-5) var(--space-4); }
+  .ui-toast { left: var(--space-4); right: var(--space-4); bottom: var(--space-4); max-width: none; }
+}

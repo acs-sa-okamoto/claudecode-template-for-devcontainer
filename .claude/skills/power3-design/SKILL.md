@@ -42,11 +42,26 @@ argument-hint: "[機能名 / 空（docs/spec から自動検出）]"
 - **`interfaces.*` / `database-schema.*` / `api-endpoints.md`**: **この機能で契約が変わる場合のみ**生成（既存契約の拡張差分として）。変わらないなら生成せず「既存を流用（変更なし）」と change-plan に明記。
   - **API エンドポイントを新設・変更する場合**は、`beam3-design/references/api-design.md` を読む（解決順: リポジトリ直下 `.claude/skills/` → `~/.claude/skills/`）。ただし **API-0（一貫性が最優先）** のとおり、**既存 API の流儀がリファレンスより上位**である。既存が本書と違う書き方で統一されているなら既存に合わせ、逸脱の理由を change-plan に一言残す。新規に決める部分だけリファレンスの判断基準（ステータスコード・エラー形式・ページネーション等）を使う。
 - **`architecture.md`**: 機能がアーキ構成に影響する場合のみ（差分）。影響しないなら省略し change-plan に一言。
+- **画面の設計（この機能が画面に触る場合）**: `Skill(skill="ui-design", args="plan {機能名} 追従")` を実行する。
+  - **作るもの:** `design/screens.md`（画面・導線と手数の予算・状態・文言）。画面台帳 `docs/ui/screens.json` にも画面を足す。
+  - **見た目は既存の決まりに合わせる。** 新しい見た目は作らない。
+    - `docs/ui/standard.md` が無ければ、understanding-brief の UI の規約から「今の決まり」を抽出して作る。
+    - ばらつきは直さず、`docs/ui/backlog.md` へ送る。
+  - **change-plan への書き方:** 触る画面を画面 ID（SCR-xx）で書く。
+  - **画面が無い機能なら:** API だけ・バッチなら、理由を一言述べて飛ばす。
+- **種別が「UI 一新」の場合**（feature-requirements の種別欄）:
+  - **見た目の決まりは作り直さない。** ui-renewal で承認済み（`docs/ui/standard.md`・`docs/ui/mock.html`）なので、それを正とする。
+  - **change-plan の順番:**
+    1. トークンの導入。今の値 → 新しいトークンの対応表を作る（understanding-brief の「UI の作り」で数えた、値を直接書いている所から）。
+    2. 共通部品の見た目。
+    3. 画面ごとの調整。
+  - **画面と課題の書き方:** 画面は画面 ID、直す課題は診断の課題 ID（UIA-xx）で書く。
+  - **UI ライブラリ:** 乗り換えない（CON）。乗り換えが要る課題は、change-plan に「対象外（理由）」と書く。
 - **`prep.md` の同期（該当時のみ）**: 技術選定の結果、新たな API キー・外部サービス・環境変数が必要になる場合は `docs/spec/{機能名}/prep.md` を更新する（power1 が未生成なら beam2 の prep テンプレート形式で新規作成。**P0: 実装側でダミー値を埋めず、必要なキーはここに列挙する**）。
 - 各文書のすべての項目に信頼性レベルを付す。既存契約からの逸脱は理由を記録する。
 
 ## step4: 完了報告
-- **Git コミット**（feature ブランチ上の場合）: `docs/spec/{機能名}/design/` を `git add` → `git commit -m "power3: design"`。git 管理外ならスキップ。
+- **Git コミット**（feature ブランチ上の場合）: `docs/spec/{機能名}/design/` と、ui-design が作った・更新した `docs/ui/` を `git add` → `git commit -m "power3: design"`。git 管理外ならスキップ。
 - 生成ファイルのパス一覧、信頼性レベル分布。
 - change-plan の「触るファイル数（新規/改修）」サマリー。
 - 次工程を案内: **`power4-tasks`**（この設計をタスク化・SP見積もり）。`power` 経由なら自動で次へ。

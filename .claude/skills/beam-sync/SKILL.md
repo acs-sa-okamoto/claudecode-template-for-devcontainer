@@ -26,7 +26,7 @@ argument-hint: "[要件名/機能名] [phase: beam1|…|beam5-phaseN|power1-4|po
 # context
 
 - 引数: `{要件名} {phase}`（power では `{要件名}` の位置に `{機能名}` を渡す。以下まとめて `REQ`）
-  - beam: `beam1` / `beam2` / `beam3` / `beam4` / `beam5` / `beam5-phaseN`（N=実装フェーズ番号）
+  - beam: `beam1` / `beam2` / `beam3` / `beam4` / `beam5` / `beam5-phaseN`（N=実装フェーズ番号）/ `beam5-ui`（UI の磨き上げ。最上位の実装フェーズの上に積む）
   - power: `power1-4` / `power5-phaseN` / `power6`
 - トランク: **リポジトリの既定ブランチ**（通常 `main`。to-prd が作成）。決め打ちにせず `gh repo view --json defaultBranchRef` で解決し、取得できなければ `main` にフォールバックする（以下 `$TRUNK`）
 - フェーズブランチ: **`{phase}-{REQ}`**（例 `beam4-task-bridge` / `beam5-phase2-task-bridge` / `power5-phase1-wordbook-v2`）。**作業も PR もこのブランチ上で行う**
@@ -79,6 +79,7 @@ $TRUNK
 | `beam4` | `beam4: タスク分解（{要件名}）` |
 | `beam5` | `beam5: 実装（{要件名}）` |
 | `beam5-phaseN` | `beam5: 実装 Phase N（{要件名}）` |
+| `beam5-ui` | `beam5: UI の磨き上げ（{要件名}）` |
 | `power1-4` | `power1-4: 理解・設計（{機能名}）` |
 | `power5-phaseN` | `power5: 実装 Phase N（{機能名}）` |
 | `power6` | `power6: 検証（{機能名}）` |
@@ -178,17 +179,23 @@ case "$PHASE" in
   beam5-phase*)        n="${PHASE#beam5-phase}"; PREV_PHASE="beam5-phase$((n-1))" ;;
   power5-phase1)       PREV_PHASE="power1-4" ;;
   power5-phase*)       n="${PHASE#power5-phase}"; PREV_PHASE="power5-phase$((n-1))" ;;
-  power6)              PREV_PHASE="" ;;     # 下で動的に解決する
+  power6|beam5-ui)     PREV_PHASE="" ;;     # 下で動的に解決する
   *)                   PREV_PHASE="" ;;     # beam1 / power1-4 / 不明な phase は $TRUNK 基点
 esac
 
-# power6 の直前は「最も高い実装フェーズ」。フェーズ数は power4 が決めるので固定できない。
-# 降順に走査して最初に見つかった open な PR を持つフェーズを採り、1つも無ければ power1-4 に落とす。
+# power6・beam5-ui の直前は「最も高い実装フェーズ」。フェーズ数は power4 / beam4 が決めるので固定できない。
+# 降順に走査して最初に見つかった open な PR を持つフェーズを採り、1つも無ければ power1-4 / beam4 に落とす。
 if [ "$PHASE" = "power6" ]; then
   for n in $(seq 20 -1 1); do
     if has_open_pr "power5-phase${n}-${REQ}"; then PREV_PHASE="power5-phase${n}"; break; fi
   done
   [ -n "$PREV_PHASE" ] || PREV_PHASE="power1-4"
+fi
+if [ "$PHASE" = "beam5-ui" ]; then
+  for n in $(seq 20 -1 1); do
+    if has_open_pr "beam5-phase${n}-${REQ}"; then PREV_PHASE="beam5-phase${n}"; break; fi
+  done
+  [ -n "$PREV_PHASE" ] || PREV_PHASE="beam4"
 fi
 
 PREV_BR=""
@@ -286,9 +293,10 @@ fi
 | beam3 | `docs/spec/{要件名}/design/*` ・ `requirements.md` | 確定した未解決事項の件数、主要アーキ判断、IF/エンドポイント/スキーマの規模、信頼性分布、prep.md の更新有無 |
 | beam4 | `docs/tasks/{要件名}/overview.md` | タスク総数、合計SP、フェーズ数、要件カバレッジ（⭕/🟢/❌） |
 | beam5-phaseN | `docs/implements/{要件名}/*`（verify-report 等） | 実装した TASK 一覧、test/typecheck/lint 結果、要件適合（⭕/🟢/❌）、code-review の結果（CRITICAL/HIGH=0） |
+| beam5-ui | `docs/tasks/{要件名}/ui-polish-report.md` | 対象の画面数、A 層の候補（最初 → 最後）、層ごとの直した数、提案と backlog に送った数、人間の確認（review.html）の結果、code-review の結果（CRITICAL/HIGH=0）。**見た目と文言だけの差分である**旨を【概要】に明記する |
 | power1-4 | `docs/spec/{機能名}/feature-requirements.md`・`understanding-brief.md`・`design/`・`docs/tasks/{機能名}/overview.md`・`docs/code-map.md` | FR/NFR/AC 件数、確定 INT・REG 件数、**既存要件との矛盾（power2 step4-1）の有無と `/revise` の予定**、タスク総数・合計SP・フェーズ数、信頼性分布、**code-map の根拠検証結果（N 件 / 失敗 0）**。**この PR が人間のレビュー地点**である旨を【概要】に明記する |
 | power5-phaseN | `docs/implements/{機能名}/*` | 実装した TASK 一覧、test/typecheck/lint 結果、code-review の結果（CRITICAL/HIGH=0）、既存規約への準拠で迷った点 |
-| power6 | `docs/tasks/{機能名}/conformance-report.md`・review レポート | 要件適合（⭕/🟢/❌）、**回帰結果（各 REG: 維持/影響）**、実環境動作（QA-1〜5）、統合レビューの結果、code-map 根拠の再検証結果 |
+| power6 | `docs/tasks/{機能名}/conformance-report.md`・review レポート・`ui-polish-report.md`（あれば） | 要件適合（⭕/🟢/❌）、**回帰結果（各 REG: 維持/影響）**、実環境動作（QA-1〜5）、UI の磨き上げ（A 層の候補 最初 → 最後・直した数・backlog に送った ID・人間の確認）、統合レビューの結果、code-map 根拠の再検証結果 |
 
 ### 実行
 
@@ -354,6 +362,7 @@ case "$PHASE" in
     ORDER="beam1 beam2 beam3 beam4 beam5"
     # beam5 の実装フェーズは PR を分けるため、存在する分を昇順で足す
     for n in $(seq 1 20); do ORDER="$ORDER beam5-phase$n"; done
+    ORDER="$ORDER beam5-ui"   # UI の磨き上げは最上位の実装フェーズの上
     ;;
 esac
 

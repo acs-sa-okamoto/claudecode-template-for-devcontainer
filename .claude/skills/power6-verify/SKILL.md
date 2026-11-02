@@ -35,7 +35,15 @@ argument-hint: "[機能名 / 空（docs/spec から自動検出）]"
 - **実環境**: アプリを起動し、主要フローを**実データ**で動かす（空でない正しい応答／画面が出るか）。外部データソース（既存DB・API・ファイル）は**実物**で確認する。
   - **確認の中身は `beam5-implement/references/ui-performance-verification.md` の §2 に従う**（解決順: リポジトリ直下 `.claude/skills/` → `~/.claude/skills/`）——QA-1 スモーク → QA-2 主要ジャーニー（正常系＋異常系）→ QA-3 レスポンシブ（375/768/1440px）→ **QA-4 アクセシビリティ（WCAG AA・キーボード完走）** → QA-5 性能実測。**種別に応じて非該当は理由を一言述べてスキップ**（UI が無いなら QA-2〜4 は非該当）。
   - **既存改修ならではの注意**: 今回**触った画面・エンドポイントに絞って**実施する。全画面を毎回舐める必要はない（範囲は understanding-brief の INT/REG で決まる）。既存に元からある WCAG 違反・性能問題は、**今回の変更が原因でなければ「既知」として記録**し、この PR の修正対象にはしない（スコープ膨張を防ぐ）。
-  - 実行手段は DevContainer 内の Playwright。使えない場合は**「自動検証できていない」と明記**し、手動確認の手順を示す。
+  - 実行手段は DevContainer 内の **ui-shots**（Playwright・axe-core・日本語フォント。`ui-shots --check` で確かめる。power0 が入れる）。使えない場合は**「自動検証できていない」と明記**し、手動確認の手順を示す。
+- **UI の磨き上げ**（この機能が画面に触る場合。QA-1・QA-2 が通った後、QA-5 の前）:
+  - **実行:** `Skill(skill="ui-design", args="polish {機能名}")` を実行する。QA-3・QA-4 はこの中で行う（判定基準の A 層に含まれる）。
+    - 撮影 → 判定 → 見た目と文言だけを直す → 撮り直し（最大2周）→ 変更前後の review.html を人間が承認する。
+  - **対象:**
+    - 通常は**今回触った画面だけ**。元からある問題（今回の変更が原因でないもの）は直さず、`docs/ui/backlog.md` に送る（いずれ `/ui-renewal` でまとめて直す）。
+    - **種別が「UI 一新」なら、範囲内の全画面。** 比較元は、ui-renewal の診断のときの画像（`.ui-shots/renewal/audit`）が残っていればそれを使う。
+  - **コミット:** 直しは `git commit -m "power6: UI polish"` として**別のコミット**にする（機能の修正と混ぜない。PR でコミット単位に見られる）。step5 の統合レビューの対象にも入る。
+  - **画面が無い機能なら:** API だけ・バッチなら、理由を一言述べて飛ばす。
 - **回帰（★ブラウンフィールド）**: understanding-brief の **各 REG について「検証方法」を実行**し、既存機能が壊れていないことを確認する。壊れていれば修正対象。
 - **回帰は累積**: 過去にマージ済みの機能の characterization/テストも合わせて green を維持する（今回の変更が**過去機能も壊していない**こと）。
 - 不一致・不具合は、テストではなく**実物に合わせて実装/設計を修正**する。
@@ -82,14 +90,14 @@ $TRUNK
 ```
 
 - `Skill(skill="beam-sync", args="{機能名} power6")` を実行する。conformance-report・回帰の記録・このステップで入れた修正・最終化した code-map が `power6-{機能名}` ブランチに載り、最上段の PR になる。base は自動で「open な PR を持つ最も高い実装フェーズ」に解決される。
-- **PR 本文には検証結果を載せる**（beam-sync が power6 用の要約項目に従って生成する）: 要件適合（⭕/🟢/❌）、回帰結果（各 REG: 維持/影響）、実環境動作（QA-1〜5）、統合レビュー結果、code-map 根拠の再検証結果。
+- **PR 本文には検証結果を載せる**（beam-sync が power6 用の要約項目に従って生成する）: 要件適合（⭕/🟢/❌）、回帰結果（各 REG: 維持/影響）、実環境動作（QA-1〜5）、UI の磨き上げの結果、統合レビュー結果、code-map 根拠の再検証結果。
 - **step5 の修正が下位フェーズのコードに及ぶ場合**: 原則は**この power6 層にまとめてコミットする**（下位ブランチへ差し戻して restack しない）。指摘はレイヤーをまたぐのが普通で、差し戻すと上位すべてのリベースが要る。ただし「Phase 2 の実装そのものが誤っている」など**そのフェーズの PR の主張が成り立たなくなる**場合だけは、当該フェーズブランチに戻して修正し、`gh stack sync` で追従する。
 - power の生成物も含めて PR してよい（自分の repo なので）。
 
 ### 6-3. 本家 upstream モード（ケースA・★PR をクリーンに）
 **PR には「機能コードの差分」だけを入れ、power の process 生成物は混ぜない**（レビュアーのノイズ・マージ阻害を防ぐ）。
 
-除外する process 生成物: `.beam/`（既に `.git/info/exclude`）・**`.claude/`（あなたのスキル・設定＝repo に同梱していても本家 PR には入れない）**・`.devcontainer/`・`CLAUDE.md`・`docs/spec/{機能名}/`・`docs/tasks/{機能名}/`・**`docs/implements/`（tdd/direct の実装記録）**・**`docs/revisions/`（revise の改定記録）**・`docs/code-map.md`・`docs/reviews/`・`data/tasks.db`。**characterization テストも既定で除外**（ローカルの安全網。CLAUDE.md の「挙動ベースライン」に記載されたパスを `:(exclude)` に加える。リファクタで挙動不変を示したい場合のみ含める）。
+除外する process 生成物: `.beam/`（既に `.git/info/exclude`）・**`.claude/`（あなたのスキル・設定＝repo に同梱していても本家 PR には入れない）**・`.devcontainer/`・`CLAUDE.md`・`docs/spec/{機能名}/`・`docs/tasks/{機能名}/`・**`docs/implements/`（tdd/direct の実装記録）**・**`docs/revisions/`（revise の改定記録）**・`docs/code-map.md`・`docs/reviews/`・**`docs/ui/`（ui-design の画面の決まり・画面台帳・backlog）**・`data/tasks.db`。撮影画像の `.ui-shots/` は `.git/info/exclude` 済み。**characterization テストも既定で除外**（ローカルの安全網。CLAUDE.md の「挙動ベースライン」に記載されたパスを `:(exclude)` に加える。リファクタで挙動不変を示したい場合のみ含める）。
 
 手順（work ブランチ `feature/{機能名}` は全履歴付きでローカルに残し、別に**クリーン PR ブランチ**を作る）:
 ```bash
@@ -105,7 +113,7 @@ git diff "upstream/$UP..feature/{機能名}" -- . \
   ':(exclude).beam' ':(exclude).claude' ':(exclude).devcontainer' ':(exclude)CLAUDE.md' \
   ':(exclude)docs/spec/{機能名}' ':(exclude)docs/tasks/{機能名}' \
   ':(exclude)docs/implements' ':(exclude)docs/revisions' \
-  ':(exclude)docs/code-map.md' ':(exclude)docs/reviews' ':(exclude)data/tasks.db' \
+  ':(exclude)docs/code-map.md' ':(exclude)docs/reviews' ':(exclude)docs/ui' ':(exclude)data/tasks.db' \
   | git apply --index
 # ★コミット前に必ず `git diff --cached` を確認し、機能コードだけであることを検証する
 git commit -m "<機能の説明>"
@@ -170,6 +178,7 @@ power1 の②で **基点が別の機能のブランチ（未マージの先行�
 - 完了報告:
   - build/test/lint（green）、実環境動作の結果、**回帰結果（各 REG: 維持/影響）**
   - 要件適合（⭕ {n} / ❌ {n} / 🟢 {n}、`conformance-report.md` へのリンク）
+  - UI の磨き上げ（画面に触った場合）: A 層の候補 最初 → 最後、直した数、backlog に送った ID、人間の確認の結果（`ui-polish-report.md` へのリンク）
   - レビュー結果（修正ラウンド数、**CRITICAL/HIGH = 0**、**既知の LOW/MEDIUM 一覧**）
   - **code-map の根拠検証（検証した根拠 N 件 / 失敗 0 件 / 検証リビジョン更新済み）**
   - **PR の URL**

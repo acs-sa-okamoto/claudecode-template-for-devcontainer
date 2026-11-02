@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "baseUrl": "http://localhost:3000",
+  "tokens": "src/styles/tokens.css",
+  "widths": [375, 768, 1440],
+  "auth": {
+    "steps": [
+      { "goto": "/login" },
+      { "fill": { "label": "メールアドレス", "value": "${env:UI_SHOTS_USER}" } },
+      { "fill": { "label": "パスワード", "value": "${env:UI_SHOTS_PASSWORD}" } },
+      { "click": { "role": "button", "name": "ログイン" } },
+      { "waitFor": { "url": "**/home" } }
+    ]
+  },
+  "screens": [
+    {
+      "id": "SCR-01", "name": "（画面の名前）", "path": "/", "login": true,
+      "waitFor": { "text": "（表示が終わった目印の文字）" },
+      "frequency": "high",
+      "states": {
+        "empty": { "routes": [{ "url": "**/api/（一覧の API）*", "json": [] }] },
+        "error": { "routes": [{ "url": "**/api/（一覧の API）*", "status": 500, "json": { "error": "internal" } }] },
+        "long": { "routes": [{ "url": "**/api/（一覧の API）*", "transform": "long" }] }
+      }
+    }
+  ],
+  "journeys": [
+    {
+      "id": "J-01", "name": "（導線の名前）", "story": "US-001", "budget": 3, "login": true,
+      "steps": [
+        { "goto": "/", "shot": "はじめ" },
+        { "click": { "role": "button", "name": "（主ボタンの名前）" }, "shot": "押した後" }
+      ]
+    }
+  ]
+}
