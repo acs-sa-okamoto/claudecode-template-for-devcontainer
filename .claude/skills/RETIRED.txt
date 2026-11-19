@@ -1,0 +1,23 @@
+# RETIRED.txt — 廃止したスキルのファイルの一覧
+#
+# 同期の仕組み（sync-skills.sh: 正本 → テンプレート / refresh-skills-from-template.sh: テンプレート → 各リポジトリ）は、
+# ファイルを「写す」だけで、写し先にだけあるファイルは消さない。写し先にだけあるファイルが
+# 「そのリポジトリが独自に足したもの」か「正本で廃止したもの」かを区別できないため。
+# この一覧に載せたパスだけは「正本で廃止した」と分かるので、同期のときに写し先から消す。
+#
+# 書き方:
+#   - 1 行に 1 つ。`.claude/` からの相対パスで書く（skills/ か skills-catalog/ で始める）。
+#   - スキルを丸ごと廃止するときは、末尾に / を付けてディレクトリで書く（例: skills/old-skill/）。
+#   - 上に「# 日付 理由」のコメントを付ける。# で始まる行と空行は読み飛ばす。
+#   - 一度載せたら消さない（古いリポジトリが、後から更新されることがあるため）。
+#   - 同じパスを正本で復活させるときは、この一覧から外す（正本に在るパスは消さずに警告する）。
+#
+# 手順: 正本（~/.claude/skills/）でファイルを消したら、ここに足してから sync-skills.sh を実行する。
+
+# 2026-09-20 refresh のスクリプトを skills-update/scripts/ へ移した
+skills/power/scripts/refresh-skills-from-template.sh
+
+# 2026-11-14 power2 の全体の地図（docs/code-map.md）を code-atlas の地図帳（docs/code-atlas/）に置き換えた
+skills/power2-understand/templates/code-map-template.md
+skills/power2-understand/references/code-map-diagrams.md
+skills/power2-understand/scripts/verify-code-map-evidence.sh

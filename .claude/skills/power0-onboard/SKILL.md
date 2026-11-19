@@ -1,6 +1,6 @@
 ---
 name: power0-onboard
-description: 既存・レガシーリポジトリを power ワークフロー（および人間）が安全に作業できる状態に整える準備スキル（power 工程0）。「power0」「レガシーを準備」「既存システムを power 用に整える」「DevContainer を作って動かせるように」「リポジトリの準備」という場面で使用してください。クローン済みリポジトリ（cwd）に対し、①スタック検出→DevContainer 生成（power の土台＝Claude Code・gh のログイン共有・gh-stack・sqlite3 は、どのリポジトリでも同じローカル feature `power-base` で必ず入れる）、②依存導入・ビルド・既存テスト green 化・実行確認、③挙動ベースライン（characterization/golden-master テスト＝回帰ネット）を半自動で用意、④CLAUDE.md（コマンド表）を確定、を行います。DevContainer 生成の都合で「コンテナ外 Stage1 → Reopen in Container → コンテナ内 Stage2」の2ステージ・再開可能。ドキュメント（全体像の地図）は書きません（それは power2 が code-map 化）。自動で解決できない所は人間向けに明示案内します（ジュニアが詰まらないように）。
+description: 既存・レガシーリポジトリを power ワークフロー（および人間）が安全に作業できる状態に整える準備スキル（power 工程0）。「power0」「レガシーを準備」「既存システムを power 用に整える」「DevContainer を作って動かせるように」「リポジトリの準備」という場面で使用してください。クローン済みリポジトリ（cwd）に対し、①スタック検出→DevContainer 生成（power の土台＝Claude Code・gh のログイン共有・gh-stack・sqlite3 は、どのリポジトリでも同じローカル feature `power-base` で必ず入れる）、②依存導入・ビルド・既存テスト green 化・実行確認、③挙動ベースライン（characterization/golden-master テスト＝回帰ネット）を半自動で用意、④CLAUDE.md（コマンド表）を確定、を行います。DevContainer 生成の都合で「コンテナ外 Stage1 → Reopen in Container → コンテナ内 Stage2」の2ステージ・再開可能。ドキュメント（全体像の地図）は書きません（それは power2 が code-atlas を呼んで、コードの地図帳 docs/code-atlas/ にする）。自動で解決できない所は人間向けに明示案内します（ジュニアが詰まらないように）。
 allowed-tools: Read, Glob, Grep, Bash, Task, Write, Edit, AskUserQuestion, Skill, TodoWrite
 argument-hint: "[空（cwd のリポジトリを準備）]"
 ---

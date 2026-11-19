@@ -11,14 +11,15 @@ argument-hint: "[機能名 / 空（docs/spec から自動検出）]"
 
 # context
 - 機能名: `{機能名}`（引数 or 自動検出）
-- 入力: `docs/spec/{機能名}/design/`（change-plan.md ほか）/ `feature-requirements.md` / `understanding-brief.md` / `docs/code-map.md`
+- 入力: `docs/spec/{機能名}/design/`（change-plan.md ほか）/ `feature-requirements.md` / `understanding-brief.md` / `docs/code-atlas/`（コードの地図帳。読むだけ）
 - 出力: `docs/tasks/{機能名}/overview.md` / `TASK-*.md` / `data/tasks.db`（テーブル名=`{機能名}`）
 
 ---
 
 ## step1: 入力の読み込み
 - `{機能名}` を確定（引数。無ければ Glob、複数なら AskUserQuestion）。
-- `design/change-plan.md`（触るファイル一覧）・他の design 文書・`feature-requirements.md`・`understanding-brief.md`・`docs/code-map.md` を読む。
+- `design/change-plan.md`（触るファイル一覧）・他の design 文書・`feature-requirements.md`・`understanding-brief.md` を読む。
+- `docs/code-atlas/index.md`（コードの地図帳の入口）を読み、understanding-brief の「0. この機能が乗る区画」に挙がっている区画のページ（`docs/code-atlas/sections/`）と `conventions.md`（全体の規約）・`glossary.md`（用語の対応）を読む。全体の流れが要るときは `architecture.md` も読む（地図帳は必要なファイルだけを読む）。タスクの「実装詳細」には、触る区画のページと、守る規約の ID（CV-…）を書いておく（実装エンジンが読む場所の案内になる）。
 - `CLAUDE.md` / `docs/rule/ai-security-guardrails.md` を読む。
 - 既存 `docs/tasks/{機能名}/TASK-*.md` があれば番号を確認（重複回避）。
 - **Git ブランチの確保**（git 管理下の場合）: 作業は `feature/{機能名}` ブランチ上で行う。未作成ならデフォルトブランチを基点に作成、既存ならチェックアウト。非 git／git 不在ならスキップ。
@@ -67,8 +68,8 @@ argument-hint: "[機能名 / 空（docs/spec から自動検出）]"
 ## step7: overview と完了報告
 - `docs/tasks/{機能名}/overview.md` を作成（beam4-tasks の overview テンプレート形式を踏襲。解決順: リポジトリ直下 `.claude/skills/beam4-tasks/templates/` → `~/.claude/skills/beam4-tasks/templates/`）。フェーズ構成・依存・カバレッジ行列を記載。
 - **Git コミット**（feature ブランチ上の場合）: `docs/tasks/{機能名}/`（`TASK-*.md`・`overview.md`）を `git add` → `git commit -m "power4: tasks"`。**`data/tasks.db` は `.gitignore` 対象なのでコミットしない**。git 管理外ならスキップ。
-- **Git 連携（★power1〜4 をここで1つの PR にする）**（own モードのみ）: `Skill(skill="beam-sync", args="{機能名} power1-4")` を実行する。power1〜4 の成果（feature-requirements / understanding-brief / design / tasks / code-map）が載った `feature/{機能名}` ブランチを push し、**スタック最下段の PR** を作る。
-  - **この PR が人間のレビュー地点**である。power2 が描いた code-map の Mermaid 図は GitHub の差分表示でレンダリングされるので、**AI の理解が正しいかを図で確認し、必要なら行単位でコメントする**。
+- **Git 連携（★power1〜4 をここで1つの PR にする）**（own モードのみ）: `Skill(skill="beam-sync", args="{機能名} power1-4")` を実行する。power1〜4 の成果（feature-requirements / understanding-brief / design / tasks / 地図帳 `docs/code-atlas/`）が載った `feature/{機能名}` ブランチを push し、**スタック最下段の PR** を作る。
+  - **この PR が人間のレビュー地点**である。power2 が理解ブリーフに描いた「この機能が乗るフロー」の図と、地図帳の `architecture.md` の図は、GitHub の差分表示でレンダリングされるので、**AI の理解が正しいかを図で確認し、必要なら行単位でコメントする**。
   - **この PR を単独でマージしない。** ドキュメントのみなのでトランクは壊れないが、先に落とすと「1機能＝1マージ単位」が崩れ、要件だけ入って実装が無い状態がトランクを通過する。**レビュー地点であってマージ地点ではない。**
   - upstream（OSS 本家）モードではスキップする（power6 の 6-3 が機能コードだけの単一クリーン PR を作るため）。`gh` 未認証等で beam-sync が中断したら、その案内を伝えて続行する。
 - 完了報告: タスク総数・合計SP・フェーズ数、カバレッジ結果（FR/NFR/AC・REG）、信頼性分布、**作成した power1-4 PR の URL**。

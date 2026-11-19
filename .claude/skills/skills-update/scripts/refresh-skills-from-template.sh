@@ -10,8 +10,10 @@
 #   テンプレは private なので gh 認証が要る。認証切れやオフラインでワークフロー全体が
 #   止まる方が、スキルが1回古いままであることより害が大きい。
 #
-# 削除はしない: テンプレに無いファイルは ⚠️ で報告するだけ。repo 独自のスキルを消さないため。
-#   本当に廃止したものだけ、報告を見て人間が git rm する。
+# 消すのは廃止の一覧に載ったものだけ: テンプレの .claude/skills/RETIRED.txt に載ったパスが
+#   この repo に残っていれば git rm する（Git の履歴から戻せる。追跡外・未コミットの変更があるものは消さずに警告）。
+#   それ以外でテンプレに無いファイルは ⚠️ で報告するだけ。repo 独自のスキルを消さないため。
+#   （写し先にだけあるファイルが「独自に足したもの」か「廃止したもの」かは、一覧が無いと区別できない）
 #
 # 使い方（対象 repo のルートで実行）:
 #   bash .claude/skills/skills-update/scripts/refresh-skills-from-template.sh
@@ -143,6 +145,59 @@ collect() {
 CHANGED=0
 EXTRAS=""
 
+# ── 廃止したファイル（テンプレの .claude/skills/RETIRED.txt）を消す ──
+# 上書きより先に行う。一覧は `.claude/` からの相対パス（末尾 / はディレクトリ）。
+RET_FILE="$SRC/.claude/skills/RETIRED.txt"
+RET_LIST=""   # 残っていた廃止のパス（.claude/ 付き）。下の ⚠️ 一覧から外すのに使う
+# $1 が廃止のパスそのものか、その下にあれば 0
+is_ret() {
+  local f="$1" r
+  while IFS= read -r r; do
+    [ -n "$r" ] || continue
+    case "$f" in "$r"|"$r"/*) return 0 ;; esac
+  done <<< "$RET_LIST"
+  return 1
+}
+# $1（ファイルかディレクトリ）の中身が、すべて廃止のパスなら 0。
+# 親ディレクトリごとテンプレに無いと diff はディレクトリ単位で報告するので、中身で判定する。
+only_retired() {
+  local x="$1" f
+  [ -n "$RET_LIST" ] || return 1
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    is_ret "$f" || return 1
+  done < <(cd "$ROOT" && find "$x" -type f 2>/dev/null)
+  return 0
+}
+if [ -f "$RET_FILE" ]; then
+  echo "── 廃止したファイル（.claude/skills/RETIRED.txt） ──"
+  NRET=0
+  while IFS= read -r line || [ -n "$line" ]; do
+    rel="$(printf '%s' "$line" | tr -d '\r' | sed 's/[[:space:]]*$//')"
+    case "$rel" in ''|'#'*) continue ;; esac
+    case "$rel" in
+      *..*|/*) continue ;;
+      skills/?*|skills-catalog/?*) ;;
+      *) continue ;;
+    esac
+    q="${rel%/}"
+    [ -e "$SRC/.claude/$q" ] && continue    # テンプレに在る＝復活した。消さない
+    [ -e "$ROOT/.claude/$q" ] || continue
+    NRET=$((NRET+1))
+    RET_LIST="${RET_LIST}.claude/$q"$'\n'
+    if [ "$CHECK_ONLY" -eq 1 ]; then
+      echo "  🗑  （引数なしで実行すると消す）.claude/$q"; CHANGED=1
+    elif git -C "$ROOT" rm -r -q -- ".claude/$q" >/dev/null 2>&1; then
+      echo "  🗑  git rm: .claude/$q"; CHANGED=1
+    else
+      echo "  ⚠️  消せませんでした（Git で追跡していないか、まだコミットしていない変更があります）: .claude/$q"
+      echo "      テンプレで廃止したファイルです。中身を確かめて、不要なら手で消してください。"
+    fi
+  done < "$RET_FILE"
+  [ "$NRET" -eq 0 ] && echo "  ✅ 残っているものはありません"
+  echo
+fi
+
 for p in "${TARGETS[@]}"; do
   S="$SRC/$p"; D="$ROOT/$p"
 
@@ -168,7 +223,12 @@ for p in "${TARGETS[@]}"; do
         [ -n "$UPDS" ] && printf '%s' "$UPDS" | grep -v '^$' | sed 's|^|  ↻ |'
       fi
       if [ -n "$EXTS" ]; then
-        EXTRAS="${EXTRAS}$(printf '%s' "$EXTS" | grep -v '^$' | sed "s|^|     $p/|")"$'\n'
+        while IFS= read -r e; do
+          [ -n "$e" ] || continue
+          # 廃止の一覧で扱ったもの（--check で残っているもの）は上で報告済み
+          only_retired "$p/$e" && continue
+          EXTRAS="${EXTRAS}     $p/$e"$'\n'
+        done <<< "$EXTS"
       fi
     fi
   else
@@ -200,7 +260,7 @@ done
 if [ -n "$EXTRAS" ]; then
   echo "⚠️  テンプレに無いファイル（自動削除しません）:"
   printf '%s' "$EXTRAS" | grep -v '^[[:space:]]*$'
-  echo "    repo 独自のものならそのままで構いません。廃止済みなら git rm してください。"
+  echo "    repo 独自のものならそのままで構いません（テンプレで廃止したものは RETIRED.txt に載せれば次から自動で消えます）。"
   echo
 fi
 

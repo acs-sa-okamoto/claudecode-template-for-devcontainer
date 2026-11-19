@@ -100,7 +100,7 @@ ui-shots "$B/scripts/capture.cjs" --config docs/ui/screens.json --out .ui-shots/
 - **power:**
   - `docs/spec/{名前}/feature-requirements.md`
   - `understanding-brief.md`（「踏襲すべき規約」の UI）
-  - `docs/code-map.md`
+  - `docs/code-atlas/index.md`（コードの地図帳の入口）から、画面の区画のページと `conventions.md` の「文言・部品・見た目」に当たる規約（あれば）
 - **共通:** `docs/ui/standard.md`・`docs/ui/screens.json`（あれば）。
 
 ### step2: 種類に応じて、見た目の決まりを用意する

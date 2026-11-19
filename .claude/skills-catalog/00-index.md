@@ -1,6 +1,6 @@
 # スキルカタログ 目次
 
-このフォルダは、開発・資料作成に使う**スキル一式（全27スキル）と、それらが参照する基準・ルール（11リファレンス）**の説明書です。初見の人が「何があって・どれを・どう使うか」を掴めるよう、用途別に5グループへ分けています。
+このフォルダは、開発・資料作成に使う**スキル一式（全29スキル）と、それらが参照する基準・ルール（11リファレンス）**の説明書です。初見の人が「何があって・どれを・どう使うか」を掴めるよう、用途別に5グループへ分けています。
 
 ## まず結論：目的別の入口
 
@@ -9,6 +9,8 @@
 | **新しいプロダクトをゼロから作りたい** | [01 ゼロから開発](01-ゼロから開発スキル.md)（to-prd → beam） |
 | **既存システムに機能を追加／リファクタしたい** | [02 途中から開発](02-途中から開発スキル.md)（power） |
 | **既存システムの UI を一新したい**（見た目が古い・ばらばら・使いにくい） | [02 途中から開発](02-途中から開発スキル.md)（ui-renewal → power） |
+| **既存システムのコードを解析して、全体像をつかみたい** | [03 開発補助系](03-開発補助系スキル.md)（code-atlas） |
+| **完了した機能の仕様の文書が増えすぎた**（今の仕様を 1 か所で読みたい） | [03 開発補助系](03-開発補助系スキル.md)（spec-archive） |
 | 上記の中で使われる部品を知りたい | [03 開発補助系](03-開発補助系スキル.md) |
 | プレゼン資料・スライドを作りたい | [04 ビジネス・デザイン系](04-ビジネス・デザイン系スキル.md)（slide-maker） |
 | スキルが「何を基準に判断しているか」を知りたい | [05 方針・ルール](05-方針・ルール.md)（リファレンス文書） |
@@ -19,11 +21,11 @@
 |---|---|---|---|
 | 01 | [ゼロから開発](01-ゼロから開発スキル.md) | 8スキル | 曖昧な要望 → PRD → 要件定義 → 設計 → タスク分解 → 実装。`to-prd` と `beam` シリーズ |
 | 02 | [途中から開発](02-途中から開発スキル.md) | 9スキル | 既存システムへの機能追加・リファクタ・UI の一新。準備 → 理解 → 設計 → 実装 → 検証・PR。`power` シリーズと `ui-renewal` |
-| 03 | [開発補助系](03-開発補助系スキル.md) | 9スキル | 01・02 の両方から呼ばれる共有エンジンと横断ツール（実装・見積もり・レビュー・スコープ・境界判定・画面の設計と磨き上げ・改定・スキル更新） |
+| 03 | [開発補助系](03-開発補助系スキル.md) | 11スキル | 01・02 の両方から呼ばれる共有エンジンと横断ツール（実装・見積もり・レビュー・スコープ・境界判定・コードの解析・画面の設計と磨き上げ・改定・仕様の片付け・スキル更新） |
 | 04 | [ビジネス・デザイン系](04-ビジネス・デザイン系スキル.md) | 1スキル | 開発ワークフロー外。PowerPoint 資料の段階作成（`slide-maker`） |
 | 05 | [方針・ルール](05-方針・ルール.md) | 11リファレンス | スキルではなく、スキルが実行時に読む基準・ルール（コード品質・セキュリティ・ビルド/デプロイ・境界判定・API 設計・UI/性能検証・画面の社内標準・画面の判定基準・図示と根拠・Kano・チェックリスト） |
 
-**合計: 27スキル ＋ 11リファレンス**
+**合計: 29スキル ＋ 11リファレンス**
 
 ## 全体像
 
@@ -36,8 +38,8 @@ flowchart TD
         PW["power：準備→理解→設計→タスク→実装→検証・PR"]
     end
 
-    AUX["③ 開発補助系（03）<br>tdd-implement / direct-implement<br>estimate-storypoint / code-review<br>scope-options / service-boundary / ui-design / revise<br>skills-update"]
-    REF["⑤ 方針・ルール（05・リファレンス）<br>coding-principles / ai-security-guardrails / build-hygiene<br>microservice-boundary-rules / api-design<br>ui-performance-verification / standard-default / ui-rubric<br>code-map-diagrams / kano-protocol / variant-checklists"]
+    AUX["③ 開発補助系（03）<br>tdd-implement / direct-implement<br>estimate-storypoint / code-review<br>scope-options / service-boundary / code-atlas / ui-design / revise<br>skills-update"]
+    REF["⑤ 方針・ルール（05・リファレンス）<br>coding-principles / ai-security-guardrails / build-hygiene<br>microservice-boundary-rules / api-design<br>ui-performance-verification / standard-default / ui-rubric<br>diagrams-and-evidence / kano-protocol / variant-checklists"]
 
     BM -. "内部で呼ぶ" .-> AUX
     PW -. "内部で呼ぶ" .-> AUX

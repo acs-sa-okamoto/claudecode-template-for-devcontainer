@@ -1,7 +1,7 @@
 # スキルカタログ
 
 `~/.claude/skills/` 配下の全スキルの索引。**新規開発は beam、既存改修は power、仕様変更は revise** が入口。
-最終更新: 2026-11-02（ui-design・ui-renewal 追加・全27スキル）
+最終更新: 2026-11-14（code-atlas を power に組み込み。全体の地図は docs/code-map.md から docs/code-atlas/ へ・全28スキル）
 
 ---
 
@@ -12,6 +12,7 @@
 | 曖昧な要望から新規プロダクトを立ち上げる | `/to-prd`（PRD＋リポジトリ作成）→ `/beam` |
 | 既存システムに機能を追加する／リファクタする | `/power`（未整備リポジトリは power0 が準備） |
 | 既存システムの UI を一新する（見た目が古い・ばらばら・使いにくい） | `/ui-renewal`（診断と方向決め → power で実装） |
+| 既存システムのコードを解析して、全体像をつかむ（機能追加の予定が無くてもよい） | `/code-atlas`（コードの地図帳を作る。深掘りは `/code-atlas S05` や `/code-atlas 認証まわり`） |
 | 確定済みの仕様・設計を変更する | `/revise` |
 | 1つの要望を松竹梅＋フルの4案で比較・選択したい | `/beam` 開始時に「4案提案を含める」（`scope-options`） |
 | PR・ブランチ・ローカル変更をレビューする | `/code-review` |
@@ -62,19 +63,20 @@ ui-design …… 画面の設計（beam3・power3）と実装後の磨き上げ�
 | **power** | オーケストレーター（readiness ゲート＋停止点。推奨: power4 まで→レビュー→/clear→5/6） | — | 各フェーズを Skill 実行 |
 | **power0-onboard** | レガシー準備（2ステージ: devcontainer / CLAUDE.md / ガードレール配置 → Reopen → 依存・ビルド・**characterization テスト**） | `.devcontainer/`・`CLAUDE.md`・回帰ネット・（任意）`.beam/` ダッシュボード | 手動ハンドオフあり |
 | **power1-scope** | スコープ確認（INT/REG/CON・[U]/[C] タグ・prep.md）＋ **`feature/{機能名}` ブランチ作成** | `docs/spec/{機能名}/feature-requirements.md`・`prep.md` | コード軽探索 |
-| **power2-understand** | 既存理解（ドキュメント信頼度で探索量調整・並列 Explore） | `understanding-brief.md`・`docs/code-map.md`（**全体像＋索引**） | Explore 委譲 |
+| **power2-understand** | 既存理解。code-atlas を呼んで地図帳を用意し（無ければ作る・有ればこの機能が乗る区画だけ深掘り）、統合面の精読・既存要件との矛盾・影響範囲（書き込む経路／共用部品の利用元／既定の自動処理と既存データ）を調べる | `understanding-brief.md`・`docs/code-atlas/`（コードの地図帳） | code-atlas |
 | **power3-design** | 差分設計（既存契約・規約に準拠） | `design/change-plan.md` ほか差分契約 | service-boundary（任意） |
 | **power4-tasks** | タスク分解（beam4 互換 tasks.db・**回帰検証タスク**・要件＋回帰カバレッジゲート） | `TASK-*.md`・`overview.md`・tasks.db（テーブル=機能名） | estimate-storypoint |
-| **power5-implement** | 実装ディスパッチャ（note/code-map を staging して橋渡し・フェーズごとコミット） | `src/`・code-map 更新 | tdd/direct-implement |
+| **power5-implement** | 実装ディスパッチャ（note と実装の索引を staging して橋渡し・フェーズごとコミット）。地図帳は読むだけ | `src/`・実装の索引 `docs/tasks/{機能名}/code-map.md` | tdd/direct-implement |
 | **power6-verify** | 検証（実環境＋**回帰ガード**）・**UI の磨き上げ（触った画面だけ）**・/code-review ループ（**CRITICAL/HIGH=0 で終了・最大2R**）・PR 作成＋PR 再レビュー。**upstream モードはクリーン PR**（process 生成物を除外） | `conformance-report.md`・`ui-polish-report.md`・PR | code-review・ui-design |
 | **ui-renewal** | **既存 UI の一新の入口**。診断（ui-design audit）→ ヒアリング → 要求書 → power1（種別: UI 一新）→ 新しい見た目の決まりと見本（ui-design plan 一新）→ power2〜6 へ引き継ぎ。レベル1（見た目）・2（画面の中の使いやすさ）を扱い、レベル3（構成）は通常の機能に分ける | `ui-audit.md`・`renewal-brief.md`・`docs/ui/standard.md`（新） | ui-design・power1〜6 |
 
-## 横断スキル（2）
+## 横断スキル（3）
 
 | スキル | 役割 | 備考 |
 |---|---|---|
 | **revise** | **仕様変更の再入口**（beam/power 共通）。影響を既存成果物から ID レベルで導出（🔵🟡🔴=影響判断の確からしさ）→承認→上流更新→下流の部分再生成→タスク再キュー→改定記録（`docs/revisions/`） | 再実装・再検証はしない（beam5/power5・ゲートに委譲）。beam の Git 反映は beam-sync 委譲 |
 | **code-review** | PR 番号／ブランチ／ローカル差分を自動判別し、A〜K の多観点（セキュリティ P0/P1・ロジック・非同期・エラー処理・整合・実データ・要件適合・可読性・設計・性能・テスト/CI）でレビュー。**指摘の品質検証**で誤検知を除去し、信頼性レベル付きレポートを出力 | 同梱の `references/ai-security-guardrails.md` が P0/P1 の唯一の出典。最終承認は人間 |
+| **code-atlas** | **既存システムのコード解析**（単独で使う）。スクリプトで目録（規模・配置・読まなくてよい場所・規約の文書）を作り、区画（最大12）に分け、全体は浅く・選んだ区画だけ深く読む（浅い把握と規約は Explore、区画の精読はサブエージェントがページを直接書いて検証まで行う）。成果物は `docs/code-atlas/` に入口（index.md）・全体像・規約・用語の対応・区画ごとのページとして分かれ、AI が必要なファイルだけを読む。根拠はスクリプトで機械検証。あとから深掘り・古い範囲だけの更新ができる | **power2 が呼んで作る・深掘りし、power6 が実装後に反映する**（単独でも使える）。開発ごとの実装の索引 `docs/tasks/{名前}/code-map.md` とは別物。図と根拠の基準（`references/diagrams-and-evidence.md`）の出典 |
 
 ## 共有エンジン（6・引数で要件名/機能名を受けるため beam/power 両対応）
 
