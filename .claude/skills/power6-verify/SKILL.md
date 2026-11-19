@@ -1,6 +1,6 @@
 ---
 name: power6-verify
-description: 機能追加の最終検証とPR化を行うスキル（power ワークフローの工程6・最終）。own モードはスタック最上段、upstream モードは feature ブランチで build/test/lint＋実環境動作＋回帰検証（既存を壊していない）＋要件適合（conformance-report）を行い、/code-review を回して CRITICAL/HIGH を修正（最大2ラウンド、残る LOW/MEDIUM は既知・許容としてレポート）。その後 own では beam-sync でスタック最上段 power6-{機能名} の PR を作り（upstream は機能コードだけのクリーン PR）、PR 差分に /code-review（再レビュー）→ code-map 最終更新まで行います。「検証」「power6」「機能を仕上げて」「PRを出して」という場面で使用してください。CI/lint/test は green 必須。最終承認は人間（AIは最終承認者ではない）。
+description: 機能追加の最終検証とPR化を行うスキル（power ワークフローの工程6・最終）。own モードはスタック最上段、upstream モードは feature ブランチで build/test/lint＋実環境動作＋回帰検証（既存を壊していない）＋要件適合（conformance-report）を行い、/code-review を回して CRITICAL/HIGH を修正（最大2ラウンド、残る LOW/MEDIUM は既知・許容としてレポート）。その後 own では beam-sync でスタック最上段 power6-{機能名} の PR を作り（upstream は機能コードだけのクリーン PR）、PR 差分に /code-review（再レビュー）まで行います。PR を出す前に、code-atlas を呼んで実装の結果をコードの地図帳（docs/code-atlas/）に反映し、根拠を再検証します。「検証」「power6」「機能を仕上げて」「PRを出して」という場面で使用してください。CI/lint/test は green 必須。最終承認は人間（AIは最終承認者ではない）。
 allowed-tools: Read, Glob, Grep, Bash, Task, Write, Edit, AskUserQuestion, Skill, TodoWrite
 argument-hint: "[機能名 / 空（docs/spec から自動検出）]"
 ---
@@ -18,13 +18,13 @@ argument-hint: "[機能名 / 空（docs/spec から自動検出）]"
 # context
 - 機能名: `{機能名}`（引数 or 自動検出）、作業ブランチ: **own はスタック最上段 `power6-{機能名}`**（power5 の最終フェーズの上に作る）／**upstream は `feature/{機能名}`**、base: **トランク＝リポジトリの既定ブランチ**（決め打ちせず `gh repo view --json defaultBranchRef` で解決。取得できなければ `main`。以下 `$TRUNK`）
 - ブランチ戦略はオーケストレーター `power` の「ブランチ戦略」節に従う（トランクベース・常設 develop なし・**1機能＝1マージ単位**。own はフェーズごとのスタックド PR を `gh stack merge` でアトミックに、upstream は機能コードだけの1本のクリーン PR）
-- 入力: `docs/spec/{機能名}/feature-requirements.md`・`understanding-brief.md`（**REG**・規約）・`design/` / `docs/code-map.md` / `data/tasks.db`
+- 入力: `docs/spec/{機能名}/feature-requirements.md`・`understanding-brief.md`（**REG**・規約）・`design/` / `docs/code-atlas/`（地図帳）/ `docs/tasks/{機能名}/code-map.md`（この機能の実装の索引。power5 が書いたもの）/ `data/tasks.db`
 
 ---
 
 ## step1: 準備
 - `{機能名}` を確定（引数。無ければ Glob、複数なら AskUserQuestion）。**own モードは最上位の実装フェーズブランチ**（open な PR を持つ最大の `power5-phase{N}-{機能名}`。無ければ `feature/{機能名}`）、**upstream モードは `feature/{機能名}`** 上にいることを確認（違えばチェックアウト）。ここで作る成果は 6-2 で `power6-{機能名}` に載る。
-- 読込: feature-requirements（FR/NFR/AC）・understanding-brief（**REG**・規約）・design/・`docs/code-map.md`・`CLAUDE.md`・`docs/rule/ai-security-guardrails.md`。
+- 読込: feature-requirements（FR/NFR/AC）・understanding-brief（**REG**・規約）・design/・`docs/code-atlas/index.md`（地図帳の入口。この機能が乗る区画のページも）・`docs/tasks/{機能名}/code-map.md`・`CLAUDE.md`・`docs/rule/ai-security-guardrails.md`。
 - `CLAUDE.md` から build/test/typecheck/lint と起動コマンドを把握。
 
 ## step2: 統合チェック（決定的）
@@ -69,6 +69,29 @@ argument-hint: "[機能名 / 空（docs/spec から自動検出）]"
 - **CRITICAL/HIGH が無くなれば終了**。2ラウンド消化しても残る場合は、その内容を明記して**人間にエスカレーション**する。
 - **残る LOW/MEDIUM は「既知・許容（人間判断）」**としてまとめる（ブロッカーにしない。主観的指摘を追いかけない）。
 
+## step5-2: 地図帳への反映（★PR を出す前に）
+
+実装でコードが動いたぶん、地図帳（`docs/code-atlas/`）の記述と `path:line` の根拠は**ずれている前提**で扱う。レビューの修正まで終わってコードが固まったここで、まとめて反映する（power5 は地図帳に触っていない）。
+
+```
+Skill(skill="code-atlas", args="--from power6 {機能名}")
+```
+
+code-atlas は次を行う（詳細は code-atlas の SKILL.md の「鮮度の確認と更新」）:
+
+1. 鮮度を確かめ、今回の変更で古くなったファイルを見つける（区画のページは、冒頭の「対象パス」の中で変更されたファイルの数で判定する）。
+2. 古くなった区画のページを、`docs/tasks/{機能名}/code-map.md`（足した・変えたモジュール）と差分を材料に直す。新しい書き込みの経路・公開シンボル・注意点を足し、行のずれた根拠を直す。
+3. 区画どうしの関係・データの流れ・エントリポイントが変わったなら全体像を、新しい規約や用語ができたなら規約・用語のページを直す。実装の索引の「地図帳への申し送り」も拾う。
+   - **理解ブリーフの流れの図を地図帳へ持ち込む**: power2 が描いて検証した「この機能が乗る流れ」を、実装後のコードで描き直して、主に通る区画のページの「主な流れ」へ足す（理解ブリーフはマージ後に spec-archive で片付けられ、地図帳に残らないため）。区画を 3 つ以上またぎ、全体像の図B の選び方の表で今の図B より上に来るなら、図B への追加か入れ替えを提案する。
+   - **流れの鮮度**: 鮮度の確認で「流れ: 要確認」と出た流れ（根拠のファイルがこの機能で変わったもの）は、順番・分岐・参加者が今も同じかを読み直す。
+4. 直したファイルの検証リビジョンを今の HEAD に書き換え、**全体の根拠を再検証する**。
+
+- **結果を確かめる**: 「検証した根拠 N 件／失敗 0 件／疑い 0 件」であること。失敗が残っていれば、直すか、その項目を 🟡 に下げさせる。
+- **code-atlas を実行できない・検証スクリプトが動かないとき**は、地図帳の検証リビジョンを書き換えずに「未反映」と明記する。反映できていないのにリビジョンだけ新しくすると、古い記述が新しいコミットで検証済みであるかのように 🔵 を名乗り続ける。
+- **地図帳が無いリポジトリ**（power2 を通していない単発の実行など）では、理由を一言述べて飛ばす。
+- 反映したら `git commit -m "power6: update code-atlas"`（機能の修正と混ぜない。git 管理外ならスキップ）。この後の 6-2（own）で `power6-{機能名}` の PR に載る。upstream モードでは作業ブランチに残り、PR からは除外される（6-3）。
+- 開発ごとの実装の索引（`docs/tasks/{機能名}/code-map.md`）は、この機能の記録としてそのまま残す。
+
 ## step6: Git ファイナライズ（PR ＋ 再レビュー）
 
 ### 6-1. PR モードの判定
@@ -89,15 +112,15 @@ $TRUNK
           └ power6-{機能名}   ← ここ（検証・要件適合・統合修正）
 ```
 
-- `Skill(skill="beam-sync", args="{機能名} power6")` を実行する。conformance-report・回帰の記録・このステップで入れた修正・最終化した code-map が `power6-{機能名}` ブランチに載り、最上段の PR になる。base は自動で「open な PR を持つ最も高い実装フェーズ」に解決される。
-- **PR 本文には検証結果を載せる**（beam-sync が power6 用の要約項目に従って生成する）: 要件適合（⭕/🟢/❌）、回帰結果（各 REG: 維持/影響）、実環境動作（QA-1〜5）、UI の磨き上げの結果、統合レビュー結果、code-map 根拠の再検証結果。
+- `Skill(skill="beam-sync", args="{機能名} power6")` を実行する。conformance-report・回帰の記録・このステップで入れた修正・反映した地図帳（step5-2）が `power6-{機能名}` ブランチに載り、最上段の PR になる。base は自動で「open な PR を持つ最も高い実装フェーズ」に解決される。
+- **PR 本文には検証結果を載せる**（beam-sync が power6 用の要約項目に従って生成する）: 要件適合（⭕/🟢/❌）、回帰結果（各 REG: 維持/影響）、実環境動作（QA-1〜5）、UI の磨き上げの結果、統合レビュー結果、地図帳の根拠の再検証結果。
 - **step5 の修正が下位フェーズのコードに及ぶ場合**: 原則は**この power6 層にまとめてコミットする**（下位ブランチへ差し戻して restack しない）。指摘はレイヤーをまたぐのが普通で、差し戻すと上位すべてのリベースが要る。ただし「Phase 2 の実装そのものが誤っている」など**そのフェーズの PR の主張が成り立たなくなる**場合だけは、当該フェーズブランチに戻して修正し、`gh stack sync` で追従する。
 - power の生成物も含めて PR してよい（自分の repo なので）。
 
 ### 6-3. 本家 upstream モード（ケースA・★PR をクリーンに）
 **PR には「機能コードの差分」だけを入れ、power の process 生成物は混ぜない**（レビュアーのノイズ・マージ阻害を防ぐ）。
 
-除外する process 生成物: `.beam/`（既に `.git/info/exclude`）・**`.claude/`（あなたのスキル・設定＝repo に同梱していても本家 PR には入れない）**・`.devcontainer/`・`CLAUDE.md`・`docs/spec/{機能名}/`・`docs/tasks/{機能名}/`・**`docs/implements/`（tdd/direct の実装記録）**・**`docs/revisions/`（revise の改定記録）**・`docs/code-map.md`・`docs/reviews/`・**`docs/ui/`（ui-design の画面の決まり・画面台帳・backlog）**・`data/tasks.db`。撮影画像の `.ui-shots/` は `.git/info/exclude` 済み。**characterization テストも既定で除外**（ローカルの安全網。CLAUDE.md の「挙動ベースライン」に記載されたパスを `:(exclude)` に加える。リファクタで挙動不変を示したい場合のみ含める）。
+除外する process 生成物: `.beam/`（既に `.git/info/exclude`）・**`.claude/`（あなたのスキル・設定＝repo に同梱していても本家 PR には入れない）**・`.devcontainer/`・`CLAUDE.md`・`docs/spec/{機能名}/`・`docs/tasks/{機能名}/`・**`docs/implements/`（tdd/direct の実装記録）**・**`docs/revisions/`（revise の改定記録）**・**`docs/code-atlas/`（コードの地図帳）**・`docs/code-map.md`（旧版の地図が残っている場合）・`docs/reviews/`・**`docs/ui/`（ui-design の画面の決まり・画面台帳・backlog）**・`data/tasks.db`。撮影画像の `.ui-shots/` は `.git/info/exclude` 済み。**characterization テストも既定で除外**（ローカルの安全網。CLAUDE.md の「挙動ベースライン」に記載されたパスを `:(exclude)` に加える。リファクタで挙動不変を示したい場合のみ含める）。
 
 手順（work ブランチ `feature/{機能名}` は全履歴付きでローカルに残し、別に**クリーン PR ブランチ**を作る）:
 ```bash
@@ -113,14 +136,15 @@ git diff "upstream/$UP..feature/{機能名}" -- . \
   ':(exclude).beam' ':(exclude).claude' ':(exclude).devcontainer' ':(exclude)CLAUDE.md' \
   ':(exclude)docs/spec/{機能名}' ':(exclude)docs/tasks/{機能名}' \
   ':(exclude)docs/implements' ':(exclude)docs/revisions' \
-  ':(exclude)docs/code-map.md' ':(exclude)docs/reviews' ':(exclude)docs/ui' ':(exclude)data/tasks.db' \
+  ':(exclude)docs/code-atlas' ':(exclude)docs/code-map.md' \
+  ':(exclude)docs/reviews' ':(exclude)docs/ui' ':(exclude)data/tasks.db' \
   | git apply --index
 # ★コミット前に必ず `git diff --cached` を確認し、機能コードだけであることを検証する
 git commit -m "<機能の説明>"
 git push -u origin "pr/{機能名}"
 gh pr create --base "$UP" --head "pr/{機能名}"   # fork からは既定で upstream 宛
 ```
-- process 生成物（要件・設計・タスク・code-map・conformance/review レポート）は PR に含めず、必要なら **PR 本文に要約・リンク**として添える。
+- process 生成物（要件・設計・タスク・地図帳・実装の索引・conformance/review レポート）は PR に含めず、必要なら **PR 本文に要約・リンク**として添える。
 
 ### 6-4. PR 差分に最終レビュー（＝指定の「再レビュー」）
 - 作成された PR に `Skill(skill="code-review", args="<PR番号>")` を実行。**レポートはコミットせず** PR 本文に要約／リンクする。own モードでは**最上段（`power6-{機能名}`）の PR** を対象にする（下段のフェーズ PR は power5 のゲートで各々レビュー済み）。
@@ -147,40 +171,19 @@ power1 の②で **基点が別の機能のブランチ（未マージの先行�
 - **マージ方法**: 既定は**マージコミット**（フェーズ単位の足跡を残すため）。upstream のクリーン PR モードは元から1コミットなので差が出ない。
 - ⚠️ **base に merge queue がある場合、マージ方法はキューが決める**（`--merge` / `--squash` / `--rebase` / `--merge-method` は**警告付きで無視される**）。その環境では上記の既定は保証されないため、**キュー側の設定に合わせる**。
 - **マージ後**: ブランチ削除・base の張り替えは GitHub 側が行うので人手で管理しない。次の機能は**最新化したトランクから**分岐する（power1 の①）。
+- **マージ後の片付け**: この機能の作業用の文書（note・理解ブリーフ・設計・TASK・実装のメモ・レビュー）は、マージ後に `/spec-archive` で片付けられる（要件は現役の仕様 `docs/spec/current/` へまとめ、残りは Git の履歴へ移す）。次の power1 も、片付けていない完了済みの機能を見つけたら案内する。完了報告でこのことを一言伝える。
 
 ### 6-7. 前提未達
 - `gh` 未認証・非 git の場合は push/PR をスキップし、**手動手順を案内**（検証自体は完了として報告）。
 
-## step7: code-map 最終更新と完了報告
-- `docs/code-map.md` を最終化する。**今回の変更で図（構成／主要フロー／データの流れ）と索引が実態とずれていないかを確認し、ずれていれば直す**。
-- **根拠の再検証（必須）**: 実装でコードが動いたぶん、power2 時点の `path:line` は**ずれている前提**で扱う。
-  ```bash
-  # 1) code-map 冒頭の「検証リビジョン」を現在の HEAD（40桁 SHA）に更新してから
-  # 2) 根拠が実コードに存在するか機械検証する
-  # スクリプトは「このスキルの置き場所」から辿る（作業ディレクトリや $HOME を基準にしない）
-  B='<このスキルのベースディレクトリ>'   # Claude Code が「Base directory for this skill」で示す値をそのまま入れる
-  B="$(printf '%s' "$B" | tr '\134' '/')"                    # \ を / に揃える（\134 はバックスラッシュ）
-  if command -v wslpath >/dev/null 2>&1; then                # WSL の bash のときだけ変換する
-    case "$B" in
-      //wsl.localhost/*/*|//wsl[$]/*/*) B="/${B#//*/*/}" ;;   # \\wsl.localhost\<distro>\x → /x
-      [A-Za-z]:/*) B="$(wslpath -u "$B")" ;;                  # C:\x → /mnt/c/x
-    esac
-  fi
-  bash "$B/../power2-understand/scripts/verify-code-map-evidence.sh"
-  ```
-  - **パスはこのスキルの置き場所から辿る。** ここは長い工程の最後で、直前にビルドやテストのために `cd` していることが多い。相対パス（`.claude/skills/...`）だと、コンテナの中でもそこで外れる。
-  - **スクリプトが見つからない・実行できない（終了コード 127 など）ときは、①で更新した検証リビジョンを元に戻し、「未検証」と明記する。** 再検証できていないのにリビジョンだけ新しくすると、古い根拠が新しいコミットで検証済みであるかのように 🔵 を名乗り続ける。
-  - 失敗した根拠は**必ず直す**（行ずれ・移動・削除）。直せないものは根拠を外し、その項目を **🟡 に格下げ**する。
-  - 出力の「検証した根拠: N 件」が、書いた根拠の数と一致していることを確認する（少なければ記法が外れて黙って検証対象から漏れている）。
-  - **古い検証リビジョンのまま残さない**。放置すると「昔は正しかった根拠」が 🔵 を名乗り続け、code-map 全体が信用できなくなる。
-  - 記法・作図規律は `power2-understand/references/code-map-diagrams.md` を参照。
-- 必要なら `git commit -m "power6: update code-map"`。
+## step7: 完了報告
+- **地図帳の鮮度をもう一度確かめる**: step5-2 の後にコードを直した場合（6-4 の再レビューを受けた修正など）は、step5-2 をもう一度行ってから報告する。古い検証リビジョンのまま残さない。
 - 完了報告:
   - build/test/lint（green）、実環境動作の結果、**回帰結果（各 REG: 維持/影響）**
   - 要件適合（⭕ {n} / ❌ {n} / 🟢 {n}、`conformance-report.md` へのリンク）
   - UI の磨き上げ（画面に触った場合）: A 層の候補 最初 → 最後、直した数、backlog に送った ID、人間の確認の結果（`ui-polish-report.md` へのリンク）
   - レビュー結果（修正ラウンド数、**CRITICAL/HIGH = 0**、**既知の LOW/MEDIUM 一覧**）
-  - **code-map の根拠検証（検証した根拠 N 件 / 失敗 0 件 / 検証リビジョン更新済み）**
+  - **地図帳への反映（直したファイル・検証した根拠 N 件 / 失敗 0 件 / 疑い 0 件 / 検証リビジョン更新済み）**
   - **PR の URL**
 - power ワークフロー（power1〜6）の完了を宣言する。
 

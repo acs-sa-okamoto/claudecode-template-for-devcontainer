@@ -20,11 +20,11 @@ argument-hint: "[機能名（任意・再開時）]"
 |---|---|---|---|
 | 0 | `power0-onboard` | 準備（**未整備リポジトリのみ**） | `.devcontainer/` ＋ `CLAUDE.md` ＋ characterization テスト（回帰ネット） |
 | 1 | `power1-scope` | スコープ確認 | `feature-requirements.md` ＋ **feature ブランチ作成** |
-| 2 | `power2-understand` | 既存理解 | `understanding-brief.md` ＋ `code-map.md`（**Mermaid の図＋機械検証済みの `file:line` 根拠**） |
+| 2 | `power2-understand` | 既存理解 | `understanding-brief.md` ＋ コードの地図帳 `docs/code-atlas/`（code-atlas を呼んで作る・深掘りする。**Mermaid の図＋機械検証済みの `file:line` 根拠**） |
 | 3 | `power3-design` | 変更設計 | `design/`（change-plan 等） |
 | 4 | `power4-tasks` | タスク分解 | `tasks.db` / `TASK-*.md` / `overview.md` |
-| 5 | `power5-implement` | 実装 | `src/` ＋ `code-map` 更新 |
-| 6 | `power6-verify` | 検証・PR | `conformance-report.md` ＋ **PR ＋ 再レビュー** |
+| 5 | `power5-implement` | 実装 | `src/` ＋ 実装の索引 `docs/tasks/{機能名}/code-map.md` |
+| 6 | `power6-verify` | 検証・PR | `conformance-report.md` ＋ 地図帳への反映 ＋ **PR ＋ 再レビュー** |
 
 各フェーズは前フェーズの成果物を入力とする。
 
@@ -85,7 +85,7 @@ bash "$B/../skills-update/scripts/refresh-skills-from-template.sh"
 - **「持っているか／新しいか」を判定しない。常に上書きする。** 正本はテンプレート1つで、派生 repo 側が「より新しい／より正しい」版を持つ筋書きが存在しないため。条件分岐を増やすほど判定漏れの穴ができる。
 - 対象は `.claude/skills/` ＋ `.claude/skills-catalog/` ＋ `docs/rule/ai-security-guardrails.md`（派生コピーを外すと「ここだけ古い」が再発する）。
 - **取得に失敗しても止めない**（exit 2 = fail-open）。テンプレは private なので `gh` 認証が要る。警告を出し、**いま repo にあるもので続行**する。
-- **削除はしない**。テンプレに無いファイルは ⚠️ で報告するだけ（repo 独自のスキルを消さないため）。
+- **消すのは廃止の一覧に載ったものだけ**。テンプレの `.claude/skills/RETIRED.txt` に載ったファイルが残っていれば `git rm` する（このとき出る 🗑 の行も報告する）。それ以外でテンプレに無いファイルは ⚠️ で報告するだけ（repo 独自のスキルを消さないため）。
 - **出力に「★ power/SKILL.md 自身が更新されました」が出た場合**は、その旨をユーザーに伝える。実行中のオーケストレーターは起動時に読んだ古い指示のまま動く（後続の power1〜6 は `Skill()` 呼び出し時に新版が読まれる）。**指示自体を最新にしたいかをユーザーに確認**し、望むなら中断して `/power` の再実行を案内する。
 - **更新があった場合のコミット**: トランクには直接コミットしない。**feature ブランチができた時点**で `chore: sync skills from template` として**単独コミット**する（機能差分に混ぜない。power1 未実行ならブランチ作成後にコミットする）。upstream モードでは `.claude/` を PR から除外済みなので影響しない。
 - **スキルが1つも無い repo でも、ホストで `/power` を起動すれば、ユーザーのスキル置き場にある power が動き、この手順で一式が入る**（スクリプトを power 自身の置き場所から辿るので、シェルが WSL でも Git Bash でも同じように動く）。コンテナ内で `~/.claude` も repo 同梱も両方無い場合だけは物理的に不可能なので、`power/README.md` の手動 bootstrap を案内する。
@@ -110,7 +110,7 @@ AskUserQuestion でどこまで実行するか確認する:
 
 > **推奨運用**: タスク分解（power4）まで実行 → **power4 が作った `power1-4` の PR をレビュー** → **`/clear`（新セッション）でコンテキストをリセットしてから** `power5`/`power6` を実行する（実装・検証は重いフェーズで、ファイルから状態を読み直すため会話履歴は不要）。一気に通したい場合は `power6` まで選択可。
 >
-> **レビューはまず `docs/code-map.md` の図から見る**（構成／主要フロー／データの流れ）。散文よりも、**AI がシステムをどう理解したかの誤解が最短で見つかる**。図が実態と違えば、その先の設計・タスクも同じ誤解の上に乗っている。**GitHub は PR の差分で Mermaid をレンダリングする**ので、ブラウザで図を見て該当行にコメントできる。
+> **レビューはまず図から見る**: 理解ブリーフ（`understanding-brief.md`）の「この機能が乗るフロー」と、地図帳の `docs/code-atlas/architecture.md`（構成／主要フロー／データの流れ）。地図帳の `index.md` の「未探索・分かっていないこと」も見る（AI に何が見えていないかが分かる）。散文よりも、**AI がシステムをどう理解したかの誤解が最短で見つかる**。図が実態と違えば、その先の設計・タスクも同じ誤解の上に乗っている。**GitHub は PR の差分で Mermaid をレンダリングする**ので、ブラウザで図を見て該当行にコメントできる。
 >
 > **その PR は単独でマージしない**（レビュー地点であってマージ地点ではない）。マージはスタック全体を `gh stack merge` で一度に行う。
 
@@ -142,7 +142,7 @@ AskUserQuestion でどこまで実行するか確認する:
 
 ## step5: 完了報告
 
-- 実行したフェーズと成果物（feature-requirements / understanding-brief / code-map / design / tasks / src / conformance-report）を集約表示する。
+- 実行したフェーズと成果物（feature-requirements / understanding-brief / 地図帳 docs/code-atlas / design / tasks / src / 実装の索引 / conformance-report）を集約表示する。
 - **feature ブランチ名**、（power6 まで実行した場合）**PR の URL** を表示する。
 - 停止点別の次アクション:
   - **power4 で止めた場合**: 成果物をレビュー → `/clear` 後に `/power5-implement`（または `/power` を power6 まで再実行）。
@@ -161,4 +161,4 @@ AskUserQuestion でどこまで実行するか確認する:
 
 | スクリプト | 内容 |
 |---|---|
-| `skills-update/scripts/refresh-skills-from-template.sh` | 同梱スキルをテンプレートの最新で**無条件に上書き**する（鮮度を判定しないのは、正本が1つで派生側が新しい版を持つ筋書きが無いため）。取得失敗は fail-open（exit 2）、削除はしない。**実装は `skills-update` スキルに置き、power は step1-0 でそれを呼ぶ**（1本に集約）。単独で更新したいときは `/skills-update`。 |
+| `skills-update/scripts/refresh-skills-from-template.sh` | 同梱スキルをテンプレートの最新で**無条件に上書き**する（鮮度を判定しないのは、正本が1つで派生側が新しい版を持つ筋書きが無いため）。取得失敗は fail-open（exit 2）。消すのはテンプレの `RETIRED.txt` に載ったファイルだけ。**実装は `skills-update` スキルに置き、power は step1-0 でそれを呼ぶ**（1本に集約）。単独で更新したいときは `/skills-update`。 |

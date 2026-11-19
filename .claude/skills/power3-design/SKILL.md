@@ -1,6 +1,6 @@
 ---
 name: power3-design
-description: 既存システムへの機能追加の変更設計を行うスキル（power ワークフローの工程3）。power1/power2 の成果物（feature-requirements.md・understanding-brief.md・code-map.md）を入力に、既存の契約・規約に準拠した「差分設計」を行い、docs/spec/{機能名}/design/ に変更計画と必要な設計文書を生成します。「変更設計」「power3」「機能の設計をして」という場面で使用してください。beam3-design ディスパッチャは呼びません（要件名=pwd 衝突を避けるため）が、beam3 のテンプレート形式は踏襲し、設計エンジン部品（service-boundary 等）は必要時のみ再利用します。各項目に信頼性レベル（🔵🟡🔴）を付します。
+description: 既存システムへの機能追加の変更設計を行うスキル（power ワークフローの工程3）。power1/power2 の成果物（feature-requirements.md・understanding-brief.md）とコードの地図帳（docs/code-atlas/）を入力に、既存の契約・規約に準拠した「差分設計」を行い、docs/spec/{機能名}/design/ に変更計画と必要な設計文書を生成します。「変更設計」「power3」「機能の設計をして」という場面で使用してください。beam3-design ディスパッチャは呼びません（要件名=pwd 衝突を避けるため）が、beam3 のテンプレート形式は踏襲し、設計エンジン部品（service-boundary 等）は必要時のみ再利用します。各項目に信頼性レベル（🔵🟡🔴）を付します。
 allowed-tools: Read, Glob, Grep, Task, Write, Edit, AskUserQuestion, Bash, Skill, TodoWrite
 argument-hint: "[機能名 / 空（docs/spec から自動検出）]"
 ---
@@ -18,14 +18,15 @@ argument-hint: "[機能名 / 空（docs/spec から自動検出）]"
 
 # context
 - 機能名: `{機能名}`（引数 or 自動検出）
-- 入力: `docs/spec/{機能名}/feature-requirements.md` / `understanding-brief.md` / `docs/code-map.md`
+- 入力: `docs/spec/{機能名}/feature-requirements.md` / `understanding-brief.md` / `docs/code-atlas/`（コードの地図帳。読むだけ）
 - 出力: `docs/spec/{機能名}/design/`
 
 ---
 
 ## step1: 入力の読み込み
 - `{機能名}` を確定（引数。無ければ `docs/spec/*/feature-requirements.md` を Glob、複数なら AskUserQuestion）。
-- `feature-requirements.md`・`understanding-brief.md`・`docs/code-map.md` を読む。
+- `feature-requirements.md`・`understanding-brief.md` を読む。
+- `docs/code-atlas/index.md`（コードの地図帳の入口）を読み、understanding-brief の「0. この機能が乗る区画」に挙がっている区画のページ（`docs/code-atlas/sections/`）と `conventions.md`（全体の規約）・`glossary.md`（用語の対応）を読む。全体の流れが要るときは `architecture.md` も読む（地図帳は必要なファイルだけを読む）。設計は `conventions.md` の規約（CV-…）に合わせ、合わせない場合は理由を change-plan に書く。「例外・守られていない場所」に挙がっている既存の書き方は、まねない。地図帳は書き換えない。
 - `CLAUDE.md` / `docs/rule/ai-security-guardrails.md` を読む。
 - understanding-brief の **確定 INT/CON・規約・未解決の論点** を把握する。
 - **Git ブランチの確保**（git 管理下の場合）: 作業は `feature/{機能名}` ブランチ上で行う。未作成ならデフォルトブランチを基点に作成、既存ならチェックアウト。非 git／git 不在ならスキップ。

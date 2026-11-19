@@ -13,10 +13,10 @@
 | — | `power` | オーケストレーター（停止点を選んで順次実行＋readiness ゲート） | — |
 | 0 | `power0-onboard` | 準備（**未整備／レガシーのみ**） | `.devcontainer/` ＋ `CLAUDE.md` ＋ characterization テスト（回帰ネット） |
 | 1 | `power1-scope` | スコープ確認 | `feature-requirements.md` ＋ **feature ブランチ作成** |
-| 2 | `power2-understand` | 既存理解 | `understanding-brief.md` ＋ `code-map.md`（**全体像＋索引**） |
+| 2 | `power2-understand` | 既存理解 | `understanding-brief.md` ＋ コードの地図帳 `docs/code-atlas/`（code-atlas を呼ぶ） |
 | 3 | `power3-design` | 変更設計 | `design/`（change-plan 等） |
 | 4 | `power4-tasks` | タスク分解 | `tasks.db` / `TASK-*.md` / `overview.md` |
-| 5 | `power5-implement` | 実装（工程ごとにコミット） | `src/` ＋ `code-map` 更新 |
+| 5 | `power5-implement` | 実装（工程ごとにコミット） | `src/` ＋ 実装の索引 `docs/tasks/{機能名}/code-map.md` |
 | 6 | `power6-verify` | 検証・回帰・**UI の磨き上げ（触った画面）**・PR・再レビュー | `conformance-report.md` ＋ **PR** |
 | 入口 | `ui-renewal` | **既存 UI の一新**（診断 → ヒアリング → 要求書 → 方向決め → power1〜6 へ） | `ui-audit.md`・`renewal-brief.md`・`docs/ui/standard.md`（新） |
 
@@ -30,7 +30,7 @@
 /power（オーケストレーター）
    ├─ 未整備なら power0-onboard（DevContainer / ビルド / 回帰ネット / CLAUDE.md）
    ├─ power1 scope     … feature/{機能名} ブランチ作成
-   ├─ power2 understand… code-map（全体像＋索引）
+   ├─ power2 understand… 地図帳 docs/code-atlas/（code-atlas を呼ぶ）＋ 理解ブリーフ
    ├─ power3 design → power4 tasks → power5 implement（各工程コミット）
    └─ power6 verify    … 回帰検証 ＋ /code-review → スタック最上段の PR → 再レビュー
    ↓
@@ -77,7 +77,7 @@ power4 以降はスタックド PR を作るので、コンテナの中に **gh 
 - **鮮度は判定しない**。「持っているか」「新しいか」で分岐せず常に上書きする——正本はテンプレート1つで、派生 repo 側が「より新しい／より正しい」版を持つ筋書きが無いため。条件を作るほど判定漏れの穴ができる（実際「一部だけ古い」で取り残された前例が2件ある）。
 - したがって **repo が「スキル無し」「一部だけ」「フルセットだが古い」のどれでも、同じ1手順で最新になる**。
 - 取得は private repo 対応のため `gh` を優先。**失敗しても power は止まらない**（警告して今ある物で続行）。
-- **削除はしない**ので、repo 独自に足したスキルは消えない（テンプレに無いものは ⚠️ で報告される）。
+- **消すのはテンプレの廃止の一覧（`.claude/skills/RETIRED.txt`）に載ったファイルだけ**なので、repo 独自に足したスキルは消えない（テンプレに無いものは ⚠️ で報告される）。
 - 上書きは git 管理下で起きるため、意図しない変更は `git diff` で確認・復元できる。
 
 **手順**:
@@ -129,7 +129,7 @@ power は **`origin` に push して PR を作る**ため、`origin` は **自�
 gh repo fork <owner>/<repo> --clone   # fork＋クローン＋upstream 自動設定
 ```
 - upstream との紐づけは残す（PR で戻すため）。fork は **public** になる点に注意。
-- **PR のクリーンさ**: `power6` が本家 PR 時に power の生成物（`docs/spec`・`docs/tasks`・`code-map`・`.beam`・`.devcontainer`・`CLAUDE.md` 等）を **PR から除外**し、**機能コードの差分だけ**を送る（work ブランチには全部残る）。モード判定は `gh repo view --json parent`（parent あり＝upstream モード）。
+- **PR のクリーンさ**: `power6` が本家 PR 時に power の生成物（`docs/spec`・`docs/tasks`・`docs/code-atlas`・`.beam`・`.devcontainer`・`CLAUDE.md` 等）を **PR から除外**し、**機能コードの差分だけ**を送る（work ブランチには全部残る）。モード判定は `gh repo view --json parent`（parent あり＝upstream モード）。
 
 **ケースB：自分の非公開コピー／独自版として持つ（private・推奨されることが多い）**
 ```bash
@@ -162,16 +162,24 @@ code <path>   # VS Code でクローンしたフォルダを開く → 以降 /p
 
 ## 仕様が変わったら — `/revise`（beam/power 共通の横断スキル）
 
-開発途中・完了後を問わず、**確定済みの仕様・設計を変更する**ときは `/revise` を使う（変更の再入口）。
+開発途中・完了後を問わず、**確定済みの仕様・設計を変更する**ときは `/revise` を使う（変更の再入口）。対象が**完了済み**の機能なら、その機能の TASK・tasks.db・適合レポートは読まず、仕様を直して担い手（引き金の power 機能／新しい機能／実装は不要）を決める。
 
 - 入口は2つ: `/revise REQ-05 …変更内容…`（**意図先行・推奨**）／手編集後に `/revise`（git diff から検出）
-- 影響は既存成果物（カバレッジ行列・conformance・TASK の要件リンク・change-plan・code-map）から **ID レベルで導出**し、🔵🟡🔴（=「影響あり」という判断の確からしさ）で提示 → 承認 → 上流更新 → 下流の部分再生成 → **影響タスクを再キュー**（`update_badge=1` でダッシュボードに「更新あり」表示）
+- 影響は既存成果物（カバレッジ行列・conformance・TASK の要件リンク・change-plan・実装の索引 code-map・地図帳 code-atlas）から **ID レベルで導出**し、🔵🟡🔴（=「影響あり」という判断の確からしさ）で提示 → 承認 → 上流更新 → 下流の部分再生成 → **影響タスクを再キュー**（`update_badge=1` でダッシュボードに「更新あり」表示）
 - 再実装は beam5/power5、再検証はゲートが担当（revise は整合回復まで）。改定記録は `docs/revisions/` に残る
 - beam5/power5/power6 は「上流だけ新しい」drift を検知すると `/revise` を促す（自動検知・手動実行）
+
+## 機能が完了したら — `/spec-archive`（仕様の片付け）
+
+power は機能ごとに差分の文書（要件・理解ブリーフ・設計・TASK・実装のメモ・レビュー）を書き足すので、放っておくと 1 機能あたり数十〜百本ずつ増え、今の仕様の全体がどこにも無くなる。
+
+- マージ後に `/spec-archive` を実行すると、要件・受け入れ基準・制約・しないことを **現役の仕様 `docs/spec/current/`** へまとめ、残りの作業用の文書と記録を Git の履歴へ移す（`docs/spec/ARCHIVE.md` の「取り出すコミット」から `git show` で取り出せる）。
+- 次の `power1` が最初に「マージ済みで、まだ片付けていない機能」を調べ、あれば案内する。
+- 片付けた後は、power2 の矛盾チェックも `/revise` も、現役の仕様を読む（完了した機能の TASK や記録は読まない）。
 
 ## 設計メモ（背景）
 
 - **beam は無改変**で再利用（`tdd-implement` / `direct-implement` / `estimate-storypoint` など、引数で要件名を取る下位部品のみ利用。`beam3/4/5` ディスパッチャは `要件名=pwd` 衝突のため呼ばない）。
-- **code-map = 全体像（アーキテクチャ地図）＋ beam5 互換の索引**（索引だけでは全体理解に不足するため）。
+- **地図と覚え書きを分ける**: 既存システムの地図は **コードの地図帳 `docs/code-atlas/`**（入口・全体像・規約・用語・区画のページ。power2 が code-atlas を呼んで作り、power6 が実装後に反映する。実装の途中では書き換えない）。この機能で足した・変えたものは **実装の索引 `docs/tasks/{機能名}/code-map.md`**（beam5 互換。power5 が書く）。以前の `docs/code-map.md`（全体像＋索引を 1 ファイルに持つ形）は地図帳に置き換えた——大きいリポジトリでは 1 ファイルに収まらず、AI が毎回全部を読むことになるため。
 - **レビューの終了条件 = CRITICAL/HIGH ゼロ**（指摘ゼロではない。最大2ラウンド、残る LOW/MEDIUM は既知・許容）。
 - **フォルダ規約**: テンプレのみ→`templates/`、他の参照ファイルも入る→`references/`（この README は人間向けオリエンテーションなのでフォルダ直下）。

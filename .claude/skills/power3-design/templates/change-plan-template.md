@@ -13,7 +13,7 @@
 
 **機能名:** [kebab-case-name]
 **作成日:** YYYY-MM-DD
-**入力:** feature-requirements.md / understanding-brief.md / docs/code-map.md
+**入力:** feature-requirements.md / understanding-brief.md / docs/code-atlas/（コードの地図帳）
 
 ## 1. 変更サマリー
 

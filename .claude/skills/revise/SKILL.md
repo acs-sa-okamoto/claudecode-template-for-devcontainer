@@ -1,6 +1,6 @@
 ---
 name: revise
-description: 確定済みの仕様・設計への変更（要件改定・設計判断の変更・スコープ変更）を受け付け、影響範囲を既存成果物から ID レベルで導出し、上流ドキュメント更新→下流の部分再生成→影響タスクの再キュー化まで行う beam/power 共通の横断スキル（仕様変更の再入口）。「要件を変更したい」「REQ-05 を改定したい」「仕様変更の影響を調べたい」「設計判断を変えたい」「revise」という場面で使用してください。影響はフロントマター等の宣言メタデータではなく、カバレッジ行列・conformance-report・TASK の要件リンク・change-plan・code-map から導出（Derive, Don't Configure）し、🔵確実（直接IDリンク）/🟡妥当な推測（ファイル・モジュール経由）/🔴推測（語彙のみ）＝「影響あり」という判断の確からしさで提示し、承認を得てから実行します。再実装・最終検証は行いません（beam5/power5・ゲートに委譲）。改定記録を docs/revisions/ に残します。
+description: 確定済みの仕様・設計への変更（要件改定・設計判断の変更・スコープ変更）を受け付け、影響範囲を既存成果物から ID レベルで導出し、上流ドキュメント更新→下流の部分再生成→影響タスクの再キュー化まで行う beam/power 共通の横断スキル（仕様変更の再入口）。「要件を変更したい」「REQ-05 を改定したい」「仕様変更の影響を調べたい」「設計判断を変えたい」「revise」という場面で使用してください。影響はフロントマター等の宣言メタデータではなく、カバレッジ行列・conformance-report・TASK の要件リンク・change-plan・実装の索引（code-map）・コードの地図帳（code-atlas）から導出（Derive, Don't Configure）し、🔵確実（直接IDリンク）/🟡妥当な推測（ファイル・モジュール経由）/🔴推測（語彙のみ）＝「影響あり」という判断の確からしさで提示し、承認を得てから実行します。再実装・最終検証は行いません（beam5/power5・ゲートに委譲）。改定記録を docs/revisions/ に残します。
 allowed-tools: Read, Glob, Grep, Bash, Task, Write, Edit, AskUserQuestion, Skill, TodoWrite
 argument-hint: "[要件ID＋変更内容（推奨） / 空（手編集済みの変更を git から検出）]"
 ---
@@ -11,7 +11,7 @@ argument-hint: "[要件ID＋変更内容（推奨） / 空（手編集済みの�
 
 # 原則（最優先）
 
-- **導出、宣言にあらず（Derive, Don't Configure）**: 影響グラフを新しいメタデータで管理しない。**既存成果物**（カバレッジ行列・conformance-report・TASK の要件リンク・change-plan・code-map・`docs/implements/` 記録）から**毎回導出**する。
+- **導出、宣言にあらず（Derive, Don't Configure）**: 影響グラフを新しいメタデータで管理しない。**既存成果物**（カバレッジ行列・conformance-report・TASK の要件リンク・change-plan・実装の索引 `docs/tasks/*/code-map.md`・地図帳 `docs/code-atlas/`・`docs/implements/` 記録）から**毎回導出**する。
 - **色＝「影響あり」という判断の確からしさ**（導出元で機械的に決まる。恣意で塗らない）:
   - 🔵 **確実** … 直接の ID リンク（行列・conformance・要件リンク・文書中の明示的 ID 参照）
   - 🟡 **妥当な推測** … ファイル・モジュール経由の間接リンク
@@ -19,6 +19,7 @@ argument-hint: "[要件ID＋変更内容（推奨） / 空（手編集済みの�
 - **HITL**: 影響リストは必ず承認を得てから実行する（step3 で中止すれば dry-run として機能する）。
 - **ID 安定**: 既存 ID の番号は変えない。削除は物理削除でなく**廃止マーク**。追加は末尾連番。
 - **段階認識**: 存在する成果物だけで波及を計算する（実装前なら仕様＋設計のみ、実装後なら conformance・src まで）。
+- **完了済みの対象は、作業の鎖をたどらない**: 完了した機能（マージ済みで残りのタスクが無い。spec-archive で片付け済みなら現役の仕様 `docs/spec/current/` にある）の要件を変えるときは、その機能の TASK-*.md・overview・tasks.db・conformance-report・`docs/implements/` を**読まず、書き換えない**。完了したタスクを `ready` に戻しても、実装するのは別の機能（引き金になった power 機能か、新しい機能）になるため（実績: 完了済みのタスクが対象の改定 8 件で、再キューは 0 件だった）。影響は**今のコード・テスト・地図帳**から洗い出し、**担い手（実装する機能）を決める**ところまでを行う（step5 の「完了済みの対象」）。
 - **再実装・最終検証はしない**: revise は「整合の回復と作業の再キュー化」まで。コードの再実装は beam5/power5、再検証はゲート（beam5 step4 / power6）に委譲する。
 
 # context
@@ -34,9 +35,19 @@ argument-hint: "[要件ID＋変更内容（推奨） / 空（手編集済みの�
 | 仕様 | `docs/spec/{要件名}/requirements.md`（＋user-stories / acceptance-criteria） | `docs/spec/{機能名}/feature-requirements.md` |
 | 設計 | `design/*`（architecture / interfaces / schema / api / dataflow） | `design/change-plan.md`（＋差分契約） |
 | タスク | `docs/tasks/{要件名}/` ＋ tasks.db（テーブル=要件名） | `docs/tasks/{機能名}/` ＋ tasks.db（テーブル=機能名） |
-| 実装への鎖 | conformance-report・`docs/implements/*/`・code-map | 同左 ＋ understanding-brief（INT/REG/CON） |
+| 実装への鎖 | conformance-report・`docs/implements/*/`・実装の索引 `docs/tasks/{要件名}/code-map.md` | 同左（`docs/tasks/{機能名}/code-map.md`）＋ understanding-brief（INT/REG/CON）＋ 地図帳 `docs/code-atlas/`（区画のページ） |
 | 付随整合 | prep.md（外部サービス・環境変数に影響時） | understanding-brief の INT/REG/CON |
 | ブランチ | beam-sync が作る改定用ブランチ `revise-{slug}-{要件名}`（トランク基点） | `feature/{機能名}`（チェックアウトして作業） |
+
+上の表は**作業中**の対象のもの。**完了済み**の対象（beam・power のどちらでも）は、次の表で扱う:
+
+| 整合対象 | 完了済みの対象 |
+|---|---|
+| 仕様 | 現役の仕様 `docs/spec/current/{領域}.md` の `ID（名前）`。まだ片付けていなければ、元の `requirements.md` / `feature-requirements.md` |
+| 影響を洗い出す先 | コードとテスト（要件 ID のコメント・該当の処理）・地図帳 `docs/code-atlas/`（区画のページ）・**作業中の機能**の feature-requirements / understanding-brief / change-plan / TASK |
+| 読まないもの | その機能の TASK-*.md・overview・tasks.db・conformance-report・`docs/implements/`・レビュー（片付けの対象。過去の記録で、今のコードとずれていることがある） |
+| 下流の作業 | 担い手を決める（引き金の power 機能に FR とタスクを足す／新しい power 機能にする／文言だけで実装は不要） |
+| ブランチ | 引き金が power 機能なら `feature/{機能名}`。単独の改定なら beam-sync の改定用ブランチ |
 
 ## ★交差ケース: 「引き金」と「対象」が別系統になることがある
 
@@ -59,8 +70,14 @@ argument-hint: "[要件ID＋変更内容（推奨） / 空（手編集済みの�
 - **入口モードの判定**: 引数に変更内容があれば**意図先行**。空なら**事後**（`git status --porcelain` / `git diff` で `docs/spec/**` の変更を検出し、変更された ID・セクションを抽出）。
 - **対象の解決**: 引数の ID・文言を `docs/spec/*/` 横断で検索する。beam（`requirements.md`）と power（`feature-requirements.md`）が**同一リポジトリに併存しうる**ため、複数候補・該当なしの場合は AskUserQuestion で確認する。
   - **「引き金」と「対象」を分けて把握する**（→ 上の「★交差ケース」）。power 機能の作業中に見つかった矛盾でも、**直すべきファイルが beam の `requirements.md`** であることは珍しくない。
-- **進捗段階の認識**: 存在する成果物（design/ → tasks/ → implements/ → conformance-report）から「どこまで進んでいるか」を判定し、波及計算の範囲を決める。
-- **関連成果物の読込**: 仕様・overview のカバレッジ行列・conformance-report・TASK-*.md・change-plan・code-map・understanding-brief（存在するもの）。
+- **対象の名前は `docs/spec/*/` に加えて、現役の仕様 `docs/spec/current/` も横断で探す**（`grep -rn "FR-11（" docs/spec/current/` のように、`ID（名前）` の形で書かれている）。
+- **作業中か完了済みかを判定する**（以降の読み方と step5 が変わる）:
+  - 現役の仕様にある（`ID（名前）` の形）、または `docs/spec/ARCHIVE.md` に名前がある → **完了済み**
+  - spec-archive のスクリプトが使えるなら `bash <spec-archive>/scripts/spec-inventory.sh --target {名前}` の判定を使う（トランクに入った・作業中のブランチが無い・残りのタスクが無い → 完了）。使えなければ、`git branch -a` にマージしていない `feature/{名前}`・`power*-{名前}` が無く、tasks.db のタスクがすべて done なら完了済みとみなす
+  - それ以外 → **作業中**
+  - 判定を一言添えて示す（例: 「public-launch は完了済み（PR #93 でマージ済み・残りのタスク 0）なので、TASK は読みません」）
+- **作業中の対象**: 存在する成果物（design/ → tasks/ → implements/ → conformance-report）から「どこまで進んでいるか」を判定し、波及計算の範囲を決める。関連成果物（仕様・overview のカバレッジ行列・conformance-report・TASK-*.md・change-plan・実装の索引 `docs/tasks/{名前}/code-map.md`・understanding-brief・地図帳の `index.md` と関係する区画のページ）を読む（存在するもの）。
+- **完了済みの対象**: 仕様（現役の仕様の該当の領域、または片付け前の元の要件ファイル）・地図帳の `index.md` と関係する区画のページ・**作業中の機能**の feature-requirements / understanding-brief / change-plan を読む。**その機能の TASK-*.md・overview・conformance-report・`docs/implements/`・レビューは読まない。**
 - **引き金が power 機能なら**（対象が beam の仕様であっても）`feature/{機能名}` ブランチにいることを確認する（違えばチェックアウト）。**判定軸は「対象」ではなく「引き金」**——交差ケースでは対象が beam でも、改定は当該機能の前提条件なので同じ feature ブランチに載せる（step7 参照）。
 
 ## step2: 変更内容の確定
@@ -81,8 +98,18 @@ argument-hint: "[要件ID＋変更内容（推奨） / 空（手編集済みの�
 | TASK-*.md の要件リンク | REQ → TASK | 🔵 |
 | 設計文書中の明示的 ID 参照 | REQ → design セクション | 🔵 |
 | `docs/implements/` の変更ファイル記録・change-plan のファイル一覧 | TASK/設計 → 同一ファイルを触る他の TASK | 🟡 |
-| code-map のモジュール責務・（power 複数機能間）他機能の brief/plan のファイル参照 | 機能横断の波及 | 🟡 |
+| 実装の索引（code-map）のモジュール責務・地図帳の区画のページ（同じ区画・同じデータに触る機能。「変更するときの手がかり」の表）・（power 複数機能間）他機能の brief/plan のファイル参照 | 機能横断の波及 | 🟡 |
 | キーワード grep 等の発見的手がかり | 弱い関連 | 🔴 |
+
+上の表のうち、カバレッジ行列・conformance-report・TASK の要件リンク・`docs/implements/` の記録は**作業中の対象だけ**に使う。**完了済みの対象**は、代わりに次から導出する:
+
+| 導出元 | 得られるエッジ | 色 |
+|---|---|---|
+| 現役の仕様の中の相互参照（同じ見出しの AC・ほかの領域からの ID の参照） | 仕様の兄弟項目 | 🔵 |
+| コードとテストのコメントの要件 ID（`git grep -n "FR-11" -- src tests` など。機能名つき `app-guide-onboarding FR-11` か、beam の一意な ID `REQ-017` なら確実。機能名の無い `FR-11` は、同じファイルの他の手がかりで機能を確かめる） | 要件 → 実装・テスト | 🔵（機能名の無い FR は 🟡） |
+| 地図帳の区画のページ（その要件の処理がある区画・「変更するときの手がかり」） | 要件 → モジュール・同じ区画に触る処理 | 🟡 |
+| `find-stale-spec.sh`（spec-archive）で、該当の領域に今は無いコードを書いた節がないか | 仕様の古い記述 | 🟡 |
+| 作業中の機能の feature-requirements / change-plan / TASK が、同じ ID・同じファイルに触れている | 作業中の機能への波及（その機能は作業中の対象として扱う） | 🔵 / 🟡 |
 
 - リポジトリが大きい場合、grep 網羅は **Explore サブエージェント（Task）に委譲**して結果だけ受け取る。
 - 影響リストを表で提示する（**色・成果物・根拠（導出元）・提案アクション**）。冒頭に凡例を必ず添える:
@@ -99,7 +126,20 @@ argument-hint: "[要件ID＋変更内容（推奨） / 空（手編集済みの�
 
 ## step5: 下流の部分再生成と再キュー化
 
-承認された 🔵 と、確認済みの 🟡 **についてのみ**実施する:
+承認された 🔵 と、確認済みの 🟡 **についてのみ**実施する。
+
+### 完了済みの対象
+
+**TASK-*.md・tasks.db・conformance-report には触らない**（読まない・書き換えない・再キューしない）。代わりに:
+
+- **仕様**: step4 で現役の仕様（または片付け前の元の要件ファイル）を直したら、同じ見出しの受け入れ基準・制約・しないことも合わせて直す。
+- **担い手を決める**: AskUserQuestion で次のどれかを選んでもらう。
+  - **引き金の power 機能が実装する**（作業中の機能の中で見つかった変更）: その機能の feature-requirements に FR / AC を足すか直し（ID は末尾の連番）、その機能の change-plan・TASK に反映する（＝作業中の対象として、下の「作業中の対象」の手順で扱う）。
+  - **新しい power 機能にする**: 改定記録を素材として `/power`（power1）に渡すよう案内する。
+  - **実装は要らない**（文言や数値の記録の訂正だけで、コードはすでに合っている）: その根拠（該当のコード・テスト）を改定記録に書く。
+- 改定記録の「再キューしたタスク」の節には、「完了済みの対象のため再キューなし。担い手: {機能名 / 新しい機能 / 不要}」と書く。
+
+### 作業中の対象
 
 - **仕様の兄弟**: AC / US / EDGE を更新（beam は acceptance-criteria.md 等の別ファイル、power は同一ファイル内）。
 - **設計**: 影響ファイル・影響セクション**だけ**を beam3 / power3 のテンプレート形式で再生成する。改定理由を design-interview.md（beam）/ change-plan.md（power）に記録する。
@@ -120,14 +160,15 @@ argument-hint: "[要件ID＋変更内容（推奨） / 空（手編集済みの�
   - **実装済みコードの撤去が必要な廃止**（要件が消えたが done のコードが残る）→ is_deleted ではなく**新規の「削除タスク」を起票**する
   - **★例外: 再実装を担う下流タスクが別に存在する場合は再キューしない。** 典型は「power 機能が同じ変更を実装する予定で、beam 側の done タスクが同じ要件を指している」ケース。ここで beam タスクを `ready` に戻すと、**同じ作業が 2 つのテーブルに二重に積まれ、どちらが正なのか分からなくなる**。この場合は beam タスクを `done` のまま据え置き（② で `ready` に戻さない。TASK-*.md も書き換えないので ① の対象にもならない）、**改定記録の「再キューしたタスク」節に「どの機能のどの TASK が担うか」を明記する**（再実装が宙に浮かないよう、担い手を必ず名指しする）。判断に迷うなら AskUserQuestion で確認する
 - **conformance-report**: 影響行の判定を **「⏳ 要再検証（→ revisions/{ファイル名}）」に書き換える**（⭕を残さない）。
-- **code-map は更新しない**（as-built インデックスのため、再実装後に beam5/power5 が更新する）。
+- **実装の索引（code-map）と地図帳（`docs/code-atlas/`）は更新しない**（どちらも「今あるコード」の記録のため。実装の索引は再実装後に beam5/power5 が、地図帳は power6 か `/code-atlas` が更新する）。
 
 ## step6: 改定記録と完了報告
 
 - `templates/revision-record-template.md` に従い、`docs/revisions/{YYYY-MM-DD}-{slug}.md` を生成する（変更前後・影響リスト・実施アクション・再キュータスク・残作業）。日付は Bash `date +%Y-%m-%d`。ディレクトリが無ければ作成。
 - 完了報告:
   - 変更した仕様（ID と要約）、再生成した成果物一覧
-  - **書き直し L 件 / 再キュー N 件 / 廃止 M 件 / 新規 K 件**（tasks.db 反映済み。書き直し＝TASK-*.md の変更を DB の行へ同期した件数）
+  - **作業中の対象**: **書き直し L 件 / 再キュー N 件 / 廃止 M 件 / 新規 K 件**（tasks.db 反映済み。書き直し＝TASK-*.md の変更を DB の行へ同期した件数）
+  - **完了済みの対象**: 担い手（機能名 / 新しい機能 / 不要）と、その根拠になったコード・テストの場所
   - conformance の ⏳ 化行数
   - **次アクション**: 「`/beam5-implement`（または `/power5-implement {機能名}`）で再実装 → ゲート（beam5 step4 / power6）で再検証」
 
@@ -150,7 +191,7 @@ argument-hint: "[要件ID＋変更内容（推奨） / 空（手編集済みの�
 - **再実装・コード修正**（beam5 / power5 の仕事）と**最終検証**（ゲートの仕事）
 - 変更の**自動実行トリガー**（hook は手編集を検知できず、意味変更の判定もできない。検知は beam5/power5/power6 の drift 警告が担い、本スキルは常に人間が起動する）
 - フロントマター等の**メタデータ新設**（導出で足りる。足りなくなった時に再検討）
-- code-map の更新（再実装後に実装フェーズが行う）
+- 実装の索引（code-map）と地図帳（code-atlas）の更新（再実装後に、実装フェーズと power6 が行う）
 
 # 環境前提
 

@@ -42,6 +42,7 @@ argument-hint: "[要件名] [TASK-ID]"
   - `docs/spec/{要件名}/design/architecture.md` / `database-schema.sql`
   - `docs/spec/{要件名}/feature-requirements.md`（**power の機能の場合**。要件・受け入れ条件の原典）
   - `docs/spec/{要件名}/note.md` / `docs/tech-stack.md`
+  - `docs/code-atlas/architecture.md` の「コマンド」「エントリポイント」と `docs/code-atlas/conventions.md`（**既存システムの地図帳がある場合**。ビルド・起動・テストのコマンドと、設定や環境変数の置き方の規約を確かめる。読むだけで、書き換えない）
   - `docs/spec/{要件名}/prep.md`（ユーザー準備タスク＝APIキー等。シークレットの扱いの前提）
   - `docs/rule/ai-security-guardrails.md`（P0/P1）
   - `CLAUDE.md` / `README.md`

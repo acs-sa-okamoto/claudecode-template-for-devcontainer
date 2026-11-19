@@ -294,9 +294,9 @@ fi
 | beam4 | `docs/tasks/{要件名}/overview.md` | タスク総数、合計SP、フェーズ数、要件カバレッジ（⭕/🟢/❌） |
 | beam5-phaseN | `docs/implements/{要件名}/*`（verify-report 等） | 実装した TASK 一覧、test/typecheck/lint 結果、要件適合（⭕/🟢/❌）、code-review の結果（CRITICAL/HIGH=0） |
 | beam5-ui | `docs/tasks/{要件名}/ui-polish-report.md` | 対象の画面数、A 層の候補（最初 → 最後）、層ごとの直した数、提案と backlog に送った数、人間の確認（review.html）の結果、code-review の結果（CRITICAL/HIGH=0）。**見た目と文言だけの差分である**旨を【概要】に明記する |
-| power1-4 | `docs/spec/{機能名}/feature-requirements.md`・`understanding-brief.md`・`design/`・`docs/tasks/{機能名}/overview.md`・`docs/code-map.md` | FR/NFR/AC 件数、確定 INT・REG 件数、**既存要件との矛盾（power2 step4-1）の有無と `/revise` の予定**、タスク総数・合計SP・フェーズ数、信頼性分布、**code-map の根拠検証結果（N 件 / 失敗 0）**。**この PR が人間のレビュー地点**である旨を【概要】に明記する |
+| power1-4 | `docs/spec/{機能名}/feature-requirements.md`・`understanding-brief.md`・`design/`・`docs/tasks/{機能名}/overview.md`・`docs/code-atlas/`（コードの地図帳） | FR/NFR/AC 件数、確定 INT・REG 件数、**既存要件との矛盾（power2 step4-1）の有無と `/revise` の予定**、タスク総数・合計SP・フェーズ数、信頼性分布、**地図帳の状態（新規・深掘り・更新のどれか、この機能が乗る区画、未探索の区画）と根拠の検証結果（N 件 / 失敗 0）**。**この PR が人間のレビュー地点**である旨を【概要】に明記する |
 | power5-phaseN | `docs/implements/{機能名}/*` | 実装した TASK 一覧、test/typecheck/lint 結果、code-review の結果（CRITICAL/HIGH=0）、既存規約への準拠で迷った点 |
-| power6 | `docs/tasks/{機能名}/conformance-report.md`・review レポート・`ui-polish-report.md`（あれば） | 要件適合（⭕/🟢/❌）、**回帰結果（各 REG: 維持/影響）**、実環境動作（QA-1〜5）、UI の磨き上げ（A 層の候補 最初 → 最後・直した数・backlog に送った ID・人間の確認）、統合レビューの結果、code-map 根拠の再検証結果 |
+| power6 | `docs/tasks/{機能名}/conformance-report.md`・review レポート・`ui-polish-report.md`（あれば） | 要件適合（⭕/🟢/❌）、**回帰結果（各 REG: 維持/影響）**、実環境動作（QA-1〜5）、UI の磨き上げ（A 層の候補 最初 → 最後・直した数・backlog に送った ID・人間の確認）、統合レビューの結果、地図帳への反映（直したファイル）と根拠の再検証結果 |
 
 ### 実行
 
