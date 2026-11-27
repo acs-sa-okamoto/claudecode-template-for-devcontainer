@@ -2,10 +2,12 @@ import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   test: {
-    // 除外は明示列挙する。`configDefaults` の形は Vitest のバージョンで変わり
-    // （3.2.7 では configDefaults.test が undefined）、参照すると起動時に落ちる。
+    // 除外は明示して並べる。`exclude` を書くと Vitest の既定の除外（`configDefaults.exclude`。
+    // 5 系では node_modules と .git だけ）が置き換わるので、既定の分もここに書く。
+    // （`configDefaults.test` というものは無い。除外の既定は `configDefaults.exclude`）
     exclude: [
       "**/node_modules/**",
+      "**/.git/**",
       "**/dist/**",
       // .beam/dashboard は独自の package.json / 依存 / vitest 設定を持つ別プロジェクト。
       // 除外しないとルートの `pnpm test` がダッシュボードのテストを拾い、

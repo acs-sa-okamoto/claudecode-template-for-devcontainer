@@ -6,6 +6,9 @@ export default tseslint.config(
     ignores: [
       "dist/**",
       ".beam/**",
+      // スキルの写し（テンプレートから同期される。リポジトリの中では編集しない）。
+      // 中の補助スクリプト（.js / .cjs）を lint すると、スターターの状態で `pnpm lint` が落ちる。
+      ".claude/**",
       "node_modules/**",
       "coverage/**",
       "docs/**",
