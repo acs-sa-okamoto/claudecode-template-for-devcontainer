@@ -31,6 +31,10 @@ coverage/
 # TypeScript
 *.tsbuildinfo
 
+# Python のキャッシュ（スキルの補助スクリプト〔slide-maker の pptx_template_kit.py など〕を動かすとできる）
+__pycache__/
+*.pyc
+
 # =========================================================
 # Environment variables
 # =========================================================
